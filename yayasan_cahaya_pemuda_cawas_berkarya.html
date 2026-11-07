@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123b78">
+<title>Yayasan Cahaya Pemuda Cawas Berkarya</title>
+<style>
+:root{--navy:#123b78;--blue:#1e56a0;--red:#d93636;--gold:#f5c542;--ink:#17243a;--muted:#69778d;--bg:#f3f6fb;--line:#e1e8f1;--white:#fff;--green:#16834a;--shadow:0 12px 35px #102f6010}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:11px;padding:10px 14px;font-weight:750;transition:.18s}button:hover{filter:brightness(.96);transform:translateY(-1px)}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #f5c542;outline-offset:2px}.primary{background:var(--navy);color:white}.secondary{background:#eaf0f9;color:var(--navy)}.gold{background:var(--gold);color:#392b00}.danger{background:#fff0f0;color:#b42318}.softred{background:#fff0f0;color:#b42318}.hidden{display:none!important}.muted{color:var(--muted)}.tiny{font-size:12px}.wrap{max-width:1180px;margin:auto;padding-left:22px;padding-right:22px}
+header{background:linear-gradient(120deg,#102f60,#1e56a0);color:white;position:relative;overflow:hidden}.topbar{max-width:1180px;margin:auto;padding:17px 22px;display:flex;justify-content:space-between;align-items:center;gap:14px}.brand{display:flex;align-items:center;gap:12px;color:white;text-decoration:none}.brandmark{width:48px;height:48px;border-radius:15px;background:var(--gold);color:var(--navy);display:grid;place-items:center;font-size:21px;font-weight:950;box-shadow:0 5px 15px #0002}.brand h1{font-size:14px;line-height:1.25;margin:0;letter-spacing:.4px}.brand small{display:block;opacity:.78;margin-top:5px;font-size:11px}.topnav{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.topnav a,.topnav button{color:white;text-decoration:none;background:#ffffff17;border:1px solid #ffffff35;padding:9px 12px;border-radius:10px;font-size:13px}.hero{max-width:1180px;margin:auto;min-height:310px;padding:48px 22px 65px;display:flex;align-items:center;background-size:cover;background-position:center;position:relative}.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#0a234fee 0%,#123b78c9 55%,#123b7840 100%)}.hero-content{position:relative;max-width:690px}.eyebrow{font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:850;color:var(--gold)}.hero h2{font-size:clamp(30px,5vw,48px);line-height:1.08;margin:10px 0 14px;color:#fff}.hero p{color:#e7eef9;max-width:600px;margin:0 0 20px}.hero-actions{display:flex;gap:10px;flex-wrap:wrap}.hero-actions .light{background:#fff;color:var(--navy)}.hero-actions .outline{background:#ffffff18;color:white;border:1px solid #ffffff80}
+main{padding-top:26px;padding-bottom:55px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:-3px}.stat,.panel{background:#fff;border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow)}.stat{padding:17px 19px}.stat .num{font-size:30px;font-weight:900;color:var(--navy);line-height:1.2}.stat .label{font-size:13px;color:var(--muted);margin-top:6px}.panel{padding:20px;margin-top:19px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}.panel h3{margin:0;color:var(--navy);font-size:19px}.tabs,.filters,.btnrow{display:flex;gap:8px;flex-wrap:wrap}.tab{background:#eef2f8;color:#4b5a71}.tab.active{background:var(--navy);color:white}.filters{margin:14px 0}.filters input,.filters select,.field input,.field select,.field textarea{border:1px solid #d7e0eb;border-radius:10px;padding:10px 12px;background:white;color:var(--ink);min-width:0}.filters input{flex:1;min-width:180px}.filters select{min-width:150px}.tablebox{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;padding:12px 13px;border-bottom:1px solid var(--line);vertical-align:middle}th{background:#f6f8fc;color:#58667b;text-transform:uppercase;font-size:11px;letter-spacing:.55px}tr:last-child td{border-bottom:0}.pill{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:30px;font-size:12px;font-weight:800;white-space:nowrap}.pill:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.green{background:#e8f7ef;color:var(--green)}.gray{background:#edf0f4;color:#687386}.red{background:#fff0f0;color:#b42318}.empty{padding:28px;text-align:center;color:var(--muted)}.notice{background:#fff8df;color:#6d5300;padding:12px 14px;border-radius:12px;font-size:12px;margin-top:13px}.contact-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px}.contact-card{background:#f5f8fd;border-radius:14px;padding:17px}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:11px}.field label{font-size:12px;font-weight:800;color:#536176}.field textarea{resize:vertical}.field input,.field select,.field textarea{width:100%}.contact-grid form{min-width:0}.footer{background:#0e2b56;color:#dce7f7;padding:25px 0;text-align:center}.footer strong{color:white}.footer .tiny{opacity:.75}
+.modalbg{position:fixed;inset:0;background:#0c1830c9;z-index:20;display:grid;place-items:center;padding:16px}.modal{width:min(590px,100%);max-height:92vh;overflow:auto;background:white;border-radius:18px;padding:22px;box-shadow:0 25px 90px #0005}.modal h3{margin:0 0 8px;color:var(--navy)}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.wide{grid-column:1/-1}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.adminlayout{display:grid;grid-template-columns:190px 1fr;gap:15px}.adminnav{display:flex;flex-direction:column;gap:7px}.adminnav button{text-align:left;background:#f0f4fa;color:#425570}.adminnav button.active{background:var(--navy);color:white}.admincontent{min-width:0}.admincontent h4{font-size:17px;color:var(--navy);margin:0 0 9px}.adminstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.adminstat{border:1px solid var(--line);border-radius:12px;padding:12px}.adminstat b{font-size:23px;color:var(--navy);display:block}.adminstat span{font-size:11px;color:var(--muted)}.rowactions{display:flex;gap:5px;flex-wrap:wrap}.small{padding:7px 9px;font-size:11px}.message{border:1px solid var(--line);border-radius:12px;padding:13px;margin:9px 0}.message p{margin:6px 0}.messagehead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.messagehead b{color:var(--navy)}.hero-preview{height:130px;border-radius:12px;background:linear-gradient(120deg,#102f60,#1e56a0);background-size:cover;background-position:center;margin:12px 0}.statusline{font-size:12px;color:var(--muted);margin-top:7px}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.topbar{align-items:flex-start;flex-direction:column}.topnav{width:100%}.hero{min-height:275px}.adminlayout{grid-template-columns:1fr}.adminnav{flex-direction:row;overflow:auto}.adminnav button{white-space:nowrap}.contact-grid{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}.adminstats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+ <div class="topbar">
+  <a class="brand" href="#home"><div class="brandmark">CP</div><div><h1>YAYASAN CAHAYA PEMUDA<br>CAWAS BERKARYA</h1><small>Pendataan & Penyaluran Donasi</small></div></a>
+  <nav class="topnav"><a href="#data">Data Penerima</a><a href="#kontak">Hubungi Admin</a><button id="loginOpen">Login Admin</button></nav>
+ </div>
+ <section class="hero" id="home"><div class="hero-content"><div class="eyebrow">Peduli • Berbagi • Berkarya</div><h2>Bersama Menebar Kebaikan</h2><p>Ruang informasi dan pendataan penerima bantuan Yayasan Cahaya Pemuda Cawas Berkarya. Menjaga data tetap tertata dan riwayat penyaluran tercatat.</p><div class="hero-actions"><a href="#data"><button class="light">Lihat Data</button></a><a href="#kontak"><button class="outline">Hubungi Admin</button></a></div></div></section>
+</header>
+<main class="wrap">
+ <section class="stats">
+  <div class="stat"><div class="num" id="sDonor">0</div><div class="label">Penerima donasi aktif</div></div>
+  <div class="stat"><div class="num" id="sOrphan">0</div><div class="label">Data anak yatim aktif</div></div>
+  <div class="stat"><div class="num" id="sGiven">0</div><div class="label">Sudah menerima periode ini</div></div>
+  <div class="stat"><div class="num" id="sPending">0</div><div class="label">Belum menerima periode ini</div></div>
+ </section>
+ <section class="panel" id="data">
+  <div class="panel-head"><div><h3>Data Penerima Manfaat</h3><div class="muted tiny" id="periodText">Periode berjalan</div></div><div class="tabs"><button class="tab active" data-view="donors">Penerima Donasi</button><button class="tab" data-view="orphans">Data Anak Yatim</button></div></div>
+  <div class="filters"><input id="search" placeholder="Cari nama atau lokasi..."><select id="loc"><option value="">Semua lokasi</option></select><select id="period"></select></div>
+  <div class="tablebox"><table><thead id="publicHead"></thead><tbody id="publicRows"></tbody></table></div><div class="empty hidden" id="empty">Belum ada data yang dapat ditampilkan.</div>
+  <div class="notice">Privasi penerima perlu dijaga. Sebelum website dipublikasikan dengan data asli, atur data mana yang boleh dilihat umum dan lindungi data pribadi melalui database serta hak akses admin.</div>
+ </section>
+ <section class="panel" id="kontak">
+  <div class="panel-head"><div><h3>Hubungi Admin</h3><div class="muted tiny">Kirim pertanyaan atau pesan kepada pengurus yayasan.</div></div></div>
+  <div class="contact-grid">
+   <div class="contact-card"><h4 style="margin:0 0 8px;color:var(--navy)">Ada yang ingin ditanyakan?</h4><p class="muted" style="margin:0">Gunakan formulir ini untuk menghubungi admin mengenai informasi bantuan, pendataan, atau hal lain terkait kegiatan yayasan.</p><p class="tiny muted" style="margin-top:14px">Pesan akan masuk ke kotak pesan admin setelah sistem database online diaktifkan.</p></div>
+   <form id="contactForm"><div class="field"><label>Nama</label><input name="sender" required maxlength="80" placeholder="Nama kamu"></div><div class="field"><label>Kontak yang bisa dihubungi</label><input name="reply" required maxlength="100" placeholder="Nomor WhatsApp atau email"></div><div class="field"><label>Pesan</label><textarea name="body" required rows="4" maxlength="1500" placeholder="Tulis pesan..."></textarea></div><button class="primary" type="submit">Kirim Pesan</button><div class="statusline" id="contactStatus"></div></form>
+  </div>
+ </section>
+ <section class="panel hidden" id="adminSection">
+  <div class="panel-head"><div><h3>Dashboard Admin</h3><div class="muted tiny">Kelola data penerima, periode, pesan, dan tampilan.</div></div><button class="danger small" id="logout">Keluar</button></div>
+  <div class="adminlayout"><nav class="adminnav"><button class="active" data-page="dashboard">Ringkasan</button><button data-page="manage">Kelola Data</button><button data-page="periods">Periode Bulanan</button><button data-page="messages">Pesan Masuk</button><button data-page="appearance">Tampilan Hero</button><button data-page="backup">Impor & Backup</button></nav><div class="admincontent" id="adminContent"></div></div>
+ </section>
+</main>
+<footer class="footer"><strong>YAYASAN CAHAYA PEMUDA CAWAS BERKARYA</strong><div class="tiny">Peduli • Berbagi • Berkarya</div><div class="tiny">© <span id="year"></span> Yayasan Cahaya Pemuda Cawas Berkarya</div></footer>
+
+<div class="modalbg hidden" id="loginModal"><div class="modal"><h3>Login Admin</h3><p class="muted tiny">Masuk untuk mengelola data yayasan.</p><div class="field"><label>Kata sandi</label><input id="pw" type="password" autocomplete="current-password" placeholder="Masukkan kata sandi"></div><div class="notice">Login produksi harus dihubungkan ke autentikasi server. Jangan menaruh password admin di file HTML publik.</div><div class="modal-actions"><button class="secondary" id="loginCancel">Batal</button><button class="primary" id="loginGo">Masuk</button></div><div id="loginMsg" class="statusline"></div></div></div>
+<div class="modalbg hidden" id="editModal"><div class="modal"><h3 id="editTitle">Tambah Data</h3><form id="editForm"><div class="formgrid" id="editFields"></div><div class="modal-actions"><button type="button" class="secondary" id="editCancel">Batal</button><button class="primary">Simpan Data</button></div></form></div></div>
+<input id="heroInput" class="hidden" type="file" accept="image/*"><input id="importInput" class="hidden" type="file" accept=".json,.csv,application/json,text/csv">
+<script>
+/*
+  FRONT-END PREVIEW ONLY:
+  - Penyimpanan browser lokal, tidak tersinkron antar pengunjung/perangkat.
+  - Untuk penggunaan nyata, sambungkan autentikasi dan database backend.
+  - Jangan memasukkan data pribadi sensitif ke versi ini.
+*/
+const KEY="ycpb_site_preview_v2";
+const $=id=>document.getElementById(id);
+const monthKey=()=>{let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`};
+const monthLabel=k=>{let [y,m]=k.split("-").map(Number);return new Date(y,m-1,1).toLocaleDateString("id-ID",{month:"long",year:"numeric"})};
+const fresh=()=>({periods:[monthKey()],active:monthKey(),donors:[],orphans:[],messages:[],hero:null});
+let db;try{db=JSON.parse(localStorage.getItem(KEY))||fresh()}catch{db=fresh()}
+if(!db.periods?.length)db=fresh();
+let view="donors",page="dashboard",admin=false,editingId=null;
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function persist(){localStorage.setItem(KEY,JSON.stringify(db));render()}
+function activeRows(type){return db[type].filter(x=>!x.archived)}
+function render(){
+ $("year").textContent=new Date().getFullYear();
+ $("period").innerHTML=db.periods.slice().sort().reverse().map(p=>`<option value="${p}" ${p===db.active?"selected":""}>${monthLabel(p)}</option>`).join("");
+ $("periodText").textContent="Periode: "+monthLabel(db.active);
+ let d=activeRows("donors"),o=activeRows("orphans"),all=[...d,...o],given=all.filter(x=>x.history?.[db.active]).length;
+ $("sDonor").textContent=d.length;$("sOrphan").textContent=o.length;$("sGiven").textContent=given;$("sPending").textContent=all.length-given;
+ document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
+ let term=$("search").value.toLowerCase(),selected=$("loc").value,rows=activeRows(view).filter(x=>(`${x.name} ${x.location||x.address||""}`.toLowerCase().includes(term))&&(!selected||(x.location||x.address)===selected));
+ let locations=[...new Set(activeRows(view).map(x=>x.location||x.address).filter(Boolean))].sort();
+ $("loc").innerHTML='<option value="">Semua lokasi</option>'+locations.map(v=>`<option value="${esc(v)}" ${v===selected?"selected":""}>${esc(v)}</option>`).join("");
+ $("publicHead").innerHTML=view==="donors"?"<tr><th>Nama penerima</th><th>Lokasi</th><th>Status bantuan</th></tr>":"<tr><th>Nama anak</th><th>Keterangan</th><th>Alamat</th></tr>";
+ $("publicRows").innerHTML=rows.map(x=>view==="donors"?`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.location)}</td><td><span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}</span></td></tr>`:`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.condition)}</td><td>${esc(x.address)}</td></tr>`).join("");
+ $("empty").classList.toggle("hidden",rows.length>0);$("adminSection").classList.toggle("hidden",!admin);if(admin)renderAdmin();
+ if(db.hero)$("home").style.backgroundImage=`url("${db.hero}")`;else $("home").style.backgroundImage="";
+}
+function renderAdmin(){
+ document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ let el=$("adminContent");
+ if(page==="dashboard"){
+  el.innerHTML=`<h4>Ringkasan Pengelolaan</h4><p class="muted tiny">Periode aktif: ${monthLabel(db.active)}</p><div class="adminstats"><div class="adminstat"><b>${activeRows("donors").length}</b><span>Penerima donasi aktif</span></div><div class="adminstat"><b>${activeRows("orphans").length}</b><span>Anak yatim aktif</span></div><div class="adminstat"><b>${db.messages.filter(m=>!m.read).length}</b><span>Pesan belum dibaca</span></div></div><p class="muted tiny">Gunakan menu di samping untuk memperbarui daftar penerima, status penyaluran, periode, pesan masuk, dan gambar halaman utama.</p>`;
+ }else if(page==="manage"){
+  let list=activeRows(view);
+  el.innerHTML=`<div class="panel-head"><div><h4>${view==="donors"?"Penerima Donasi":"Data Anak Yatim"}</h4><div class="muted tiny">Tampilan data yang sedang dikelola.</div></div><div class="tabs"><button class="tab ${view==="donors"?"active":""}" id="adminDonors">Donasi</button><button class="tab ${view==="orphans"?"active":""}" id="adminOrphans">Anak Yatim</button></div></div><button class="primary" id="addNew">+ Tambah Data</button><div class="tablebox" style="margin-top:13px"><table><thead><tr><th>Nama</th><th>${view==="donors"?"Lokasi":"Keterangan / Alamat"}</th><th>Status bulan ini</th><th>Aksi</th></tr></thead><tbody>${list.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${view==="donors"?esc(x.location):esc(x.condition)+"<br>"+esc(x.address)}</td><td>${view==="donors"?`<span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah":"Belum"}</span>`:"—"}</td><td><div class="rowactions">${view==="donors"?`<button class="small ${x.history?.[db.active]?"secondary":"gold"}" data-status="${x.id}">${x.history?.[db.active]?"Batalkan":"Tandai sudah"}</button>`:""}<button class="small secondary" data-edit="${x.id}">Edit</button><button class="small danger" data-archive="${x.id}">Arsipkan</button></div></td></tr>`).join("")||'<tr><td colspan="4" class="empty">Belum ada data.</td></tr>'}</tbody></table></div><p class="statusline">Data yang diarsipkan tidak dihapus permanen dari riwayat.</p>`;
+  $("adminDonors").onclick=()=>{view="donors";renderAdmin()};$("adminOrphans").onclick=()=>{view="orphans";renderAdmin()};$("addNew").onclick=()=>openEditor();
+  el.querySelectorAll("[data-status]").forEach(b=>b.onclick=()=>{let x=db.donors.find(x=>x.id===b.dataset.status);x.history[db.active]=!x.history[db.active];persist()});
+  el.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));
+  el.querySelectorAll("[data-archive]").forEach(b=>b.onclick=()=>{if(confirm("Arsipkan data ini? Data akan tetap tersimpan.")){let x=db[view].find(x=>x.id===b.dataset.archive);x.archived=true;persist()}});
+ }else if(page==="periods"){
+  el.innerHTML=`<h4>Periode Bulanan</h4><p class="muted tiny">Buat bulan baru dengan menyalin daftar aktif. Semua status penyaluran untuk periode baru otomatis kembali menjadi belum diberikan. Riwayat bulan lama tetap disimpan.</p><div class="field" style="max-width:260px"><label>Bulan baru</label><input type="month" id="newMonth" value="${monthKey()}"></div><button class="primary" id="makeMonth">Buat Periode Baru</button><div class="tablebox" style="margin-top:14px"><table><thead><tr><th>Periode</th><th>Status</th></tr></thead><tbody>${db.periods.slice().sort().reverse().map(p=>`<tr><td>${monthLabel(p)}</td><td>${p===db.active?"Periode aktif":'<button class="small secondary" data-activate="'+p+'">Buka periode</button>'}</td></tr>`).join("")}</tbody></table></div>`;
+  $("makeMonth").onclick=()=>{let p=$("newMonth").value;if(!p)return alert("Pilih bulan.");if(db.periods.includes(p))return alert("Periode sudah tersedia.");db.periods.push(p);db.active=p;[...db.donors,...db.orphans].filter(x=>!x.archived).forEach(x=>x.history[p]=false);persist()};
+  el.querySelectorAll("[data-activate]").forEach(b=>b.onclick=()=>{db.active=b.dataset.activate;persist()});
+ }else if(page==="messages"){
+  el.innerHTML=`<h4>Pesan Masuk</h4><p class="muted tiny">Pesan yang dikirim melalui formulir Hubungi Admin akan muncul di sini setelah backend/database online diaktifkan. Dalam pratinjau ini, pesan hanya tersimpan pada browser yang sama.</p>${db.messages.slice().reverse().map(m=>`<div class="message"><div class="messagehead"><b>${esc(m.sender)} ${m.read?"":"• Baru"}</b><span class="tiny muted">${new Date(m.created).toLocaleString("id-ID")}</span></div><div class="tiny muted">${esc(m.reply)}</div><p>${esc(m.body)}</p><div class="rowactions"><button class="small secondary" data-read="${m.id}">${m.read?"Tandai belum dibaca":"Tandai dibaca"}</button><button class="small danger" data-delmsg="${m.id}">Hapus</button></div></div>`).join("")||'<div class="empty">Belum ada pesan.</div>'}`;
+  el.querySelectorAll("[data-read]").forEach(b=>b.onclick=()=>{let m=db.messages.find(m=>m.id===b.dataset.read);m.read=!m.read;persist()});
+  el.querySelectorAll("[data-delmsg]").forEach(b=>b.onclick=()=>{if(confirm("Hapus pesan ini?")){db.messages=db.messages.filter(m=>m.id!==b.dataset.delmsg);persist()}});
+ }else if(page==="appearance"){
+  el.innerHTML=`<h4>Gambar Hero / Background</h4><p class="muted tiny">Unggah gambar kegiatan yayasan atau gambar lain yang sudah mendapat izin.</p><div class="hero-preview" id="heroPreview"></div><div class="btnrow"><button class="primary" id="pickHero">Upload gambar</button><button class="danger" id="clearHero">Hapus gambar</button></div><p class="statusline">Untuk situs online bersama, gambar perlu disimpan ke hosting/storage agar semua pengunjung melihat gambar yang sama.</p>`;
+  if(db.hero)$("heroPreview").style.backgroundImage=`url("${db.hero}")`;
+  $("pickHero").onclick=()=>$("heroInput").click();$("clearHero").onclick=()=>{db.hero=null;persist()};
+ }else{
+  el.innerHTML=`<h4>Impor & Backup</h4><p class="muted tiny">Backup seluruh data lokal dalam JSON, pulihkan dari backup, atau impor daftar penerima dari CSV.</p><div class="btnrow"><button class="primary" id="backup">Download Backup JSON</button><button class="secondary" id="restore">Pulihkan Backup JSON</button><button class="secondary" id="csvImport">Impor CSV Donasi</button><button class="secondary" id="csvExport">Ekspor CSV Donasi</button></div><div class="notice">Simpan backup secara berkala. Format CSV sederhana: kolom pertama Nama, kolom kedua Lokasi.</div>`;
+  $("backup").onclick=()=>download("backup-yayasan-cawas.json",JSON.stringify(db,null,2),"application/json");
+  $("restore").onclick=()=>{$("importInput").dataset.mode="json";$("importInput").click()};
+  $("csvImport").onclick=()=>{$("importInput").dataset.mode="csv";$("importInput").click()};
+  $("csvExport").onclick=()=>{let rows=[["Nama","Lokasi","Status periode"]];activeRows("donors").forEach(x=>rows.push([x.name,x.location,x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"]));download("data-penerima-donasi.csv",rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\n"),"text/csv")};
+ }
+}
+function openEditor(id){editingId=id||null;let x=id?db[view].find(v=>v.id===id):{};$("editTitle").textContent=(id?"Edit ":"Tambah ")+(view==="donors"?"Penerima Donasi":"Data Anak Yatim");$("editFields").innerHTML=view==="donors"?`<div class="field"><label>Nama penerima</label><input name="name" required maxlength="100" value="${esc(x.name||"")}"></div><div class="field"><label>Lokasi</label><input name="location" required maxlength="160" value="${esc(x.location||"")}"></div>`:`<div class="field"><label>Nama anak</label><input name="name" required maxlength="100" value="${esc(x.name||"")}"></div><div class="field"><label>Keterangan</label><select name="condition"><option ${x.condition==="Yatim"?"selected":""}>Yatim</option><option ${x.condition==="Piatu"?"selected":""}>Piatu</option><option ${x.condition==="Yatim Piatu"?"selected":""}>Yatim Piatu</option></select></div><div class="field wide"><label>Alamat</label><textarea name="address" required maxlength="300" rows="3">${esc(x.address||"")}</textarea></div>`;$("editModal").classList.remove("hidden")}
+$("editForm").onsubmit=e=>{e.preventDefault();let obj=Object.fromEntries(new FormData(e.target));if(editingId){Object.assign(db[view].find(x=>x.id===editingId),obj)}else{let x={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),...obj,archived:false,history:{}};db.periods.forEach(p=>x.history[p]=false);db[view].push(x)}$("editModal").classList.add("hidden");persist()};
+$("editCancel").onclick=()=>$("editModal").classList.add("hidden");
+document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{view=b.dataset.view;$("search").value="";$("loc").value="";render()});
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{page=b.dataset.page;renderAdmin()});
+$("period").onchange=e=>{db.active=e.target.value;persist()};$("search").oninput=render;$("loc").onchange=render;
+$("loginOpen").onclick=()=>{$("loginModal").classList.remove("hidden");$("pw").value="";$("loginMsg").textContent=""};
+$("loginCancel").onclick=()=>$("loginModal").classList.add("hidden");
+$("loginGo").onclick=()=>{$("loginMsg").textContent="Autentikasi admin belum dikonfigurasi. Hubungkan website ke layanan backend/authentication sebelum dipublikasikan.";};
+$("pw").onkeydown=e=>{if(e.key==="Enter")$("loginGo").click()};
+$("logout").onclick=()=>{admin=false;render()};
+$("contactForm").onsubmit=e=>{e.preventDefault();let data=Object.fromEntries(new FormData(e.target));db.messages.push({id:String(Date.now()),...data,created:new Date().toISOString(),read:false});persist();$("contactStatus").textContent="Pesan tersimpan di pratinjau browser ini. Pengiriman ke admin lintas perangkat aktif setelah database online dihubungkan.";e.target.reset()};
+$("heroInput").onchange=e=>{let f=e.target.files[0];if(!f)return;if(f.size>1500000){alert("Pilih gambar maksimal 1,5 MB untuk pratinjau.");return}let r=new FileReader();r.onload=()=>{db.hero=r.result;persist()};r.readAsDataURL(f);e.target.value=""};
+function download(name,data,type){let a=document.createElement("a"),url=URL.createObjectURL(new Blob([data],{type}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+$("importInput").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let t=await f.text();if(e.target.dataset.mode==="json"){let parsed=JSON.parse(t);if(!parsed.periods||!parsed.donors||!parsed.orphans)throw Error("Struktur backup tidak cocok.");if(confirm("Pulihkan backup? Data pratinjau saat ini akan diganti.")){db=parsed;persist()}}else{let lines=t.replace(/^\uFEFF/,"").split(/\r?\n/).filter(Boolean).slice(1),count=0;for(let line of lines){let cells=line.match(/("([^"]|"")*"|[^,]*)(,|$)/g)?.map(v=>v.replace(/,$/,"").replace(/^"|"$/g,"").replace(/""/g,'"'))||[];let name=(cells[0]||"").trim(),location=(cells[1]||"").trim();if(name&&location){let x={id:String(Date.now()+count),name,location,archived:false,history:{}};db.periods.forEach(p=>x.history[p]=false);db.donors.push(x);count++}}persist();alert(count+" baris berhasil diimpor.")}}catch(err){alert("Gagal mengimpor: "+err.message)}e.target.value=""};
+render();
+</script>
+</body></html>
