@@ -132,11 +132,106 @@ function render(){
  let locations=[...new Set(activeRows(view).map(x=>x.location||x.address).filter(Boolean))].sort();
  $("loc").innerHTML='<option value="">Semua lokasi</option>'+locations.map(v=>`<option value="${esc(v)}" ${v===selected?"selected":""}>${esc(v)}</option>`).join("");
  if(view==="donors"){
-   $("publicHead").innerHTML="<tr><th>Nama penerima</th><th>Status bantuan</th></tr>";
-   let groups=activeVillages().map(v=>({name:v.name,items:rows.filter(x=>(x.location||"").toLowerCase()===v.name.toLowerCase())})).filter(g=>g.items.length);
-   let ungrouped=rows.filter(x=>!activeVillages().some(v=>v.name.toLowerCase()===(x.location||"").toLowerCase()));
-   $("publicRows").innerHTML=groups.map(g=>`<tr><td colspan="2" style="background:#eef4fc;color:#123b78;font-weight:900">${esc(g.name)} · ${g.items.length} penerima</td></tr>`+g.items.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td><span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}</span></td></tr>`).join("")).join("")+ungrouped.map(x=>`<tr><td><b>${esc(x.name)}</b><div class="tiny muted">${esc(x.location)}</div></td><td><span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}</span></td></tr>`).join("");
- }else{
+  $("publicHead").innerHTML="<tr><th>Daftar Desa / Wilayah</th></tr>";
+
+  let groups=activeVillages().map(v=>({
+    name:v.name,
+    items:rows.filter(x=>
+      (x.location||"").toLowerCase()===v.name.toLowerCase()
+    )
+  })).filter(g=>g.items.length);
+
+  let ungrouped=rows.filter(x=>
+    !activeVillages().some(v=>
+      v.name.toLowerCase()===(x.location||"").toLowerCase()
+    )
+  );
+
+  $("publicRows").innerHTML=
+    groups.map((g,i)=>`
+      <tr>
+        <td style="padding:0;border-bottom:8px solid #f3f6fb">
+          <button
+            type="button"
+            data-village-toggle="${i}"
+            style="
+              width:100%;
+              display:flex;
+              align-items:center;
+              justify-content:space-between;
+              padding:17px 14px;
+              border:1px solid #dce6f3;
+              border-radius:10px;
+              background:linear-gradient(120deg,#eaf2fc,#f7faff);
+              color:#173e70;
+              text-align:left;
+              cursor:pointer;
+            "
+          >
+            <span>
+              <b style="font-size:15px;display:block">
+                ${esc(g.name)}
+              </b>
+              <small style="color:#718096">
+                Klik untuk melihat daftar penerima
+              </small>
+            </span>
+            <span style="
+              background:#173e70;
+              color:white;
+              padding:6px 10px;
+              border-radius:20px;
+              font-size:11px;
+              white-space:nowrap;
+            ">
+              ${g.items.length} penerima　⌄
+            </span>
+          </button>
+        </td>
+      </tr>
+      ${g.items.map(x=>`
+        <tr data-village-members="${i}" style="display:none">
+          <td style="padding:12px 14px">
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              gap:10px;
+            ">
+              <b>${esc(x.name)}</b>
+              <span class="pill ${x.history?.[db.active]?"green":"gray"}">
+                ${x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}
+              </span>
+            </div>
+          </td>
+        </tr>
+      `).join("")}
+    `).join("")+
+    ungrouped.map(x=>`
+      <tr>
+        <td>
+          <b>${esc(x.name)}</b>
+          <div class="tiny muted">${esc(x.location)}</div>
+        </td>
+      </tr>
+    `).join("");
+
+  el.querySelectorAll("[data-village-toggle]").forEach(b=>{
+    b.onclick=()=>{
+      let id=b.dataset.villageToggle;
+      let members=el.querySelectorAll(
+        `[data-village-members="${id}"]`
+      );
+      let isOpen=members.length>0 &&
+        members[0].style.display!=="none";
+
+      members.forEach(r=>{
+        r.style.display=isOpen?"none":"table-row";
+      });
+    };
+  });
+
+}else{ }else{
    $("publicHead").innerHTML="<tr><th>Nama anak</th><th>Keterangan</th><th>Desa</th><th>Status bantuan</th></tr>";
    $("publicRows").innerHTML=rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.condition)}</td><td>${esc(x.location||x.address)}</td><td><span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}</span></td></tr>`).join("");
  }
