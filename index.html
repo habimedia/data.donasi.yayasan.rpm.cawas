@@ -128,9 +128,7 @@ function render(){
  $("sDonor").textContent=d.length;$("sOrphan").textContent=o.length;$("sGiven").textContent=given;$("sPending").textContent=all.length-given;
  document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
  let term=$("search").value.toLowerCase(),selected=$("loc").value;
- let rows=activeRows(view).filter(x=>(`${x.name} ${x.location||x.address||""}`.toLowerCase().includes(term))&&(!selected||(x.location||x.address)===selected));
- let locations=[...new Set(activeRows(view).map(x=>x.location||x.address).filter(Boolean))].sort();
- $("loc").innerHTML='<option value="">Semua lokasi</option>'+locations.map(v=>`<option value="${esc(v)}" ${v===selected?"selected":""}>${esc(v)}</option>`).join("");
+ let rows=(db[view]||[]).filter(x=>(`${x.name} ${x.location||x.address||""}`.toLowerCase().includes(term))&&(!selected||(x.location||x.address)===selected)); let locations=[...new Set((db[view]||[]).map(x=>x.location||x.address).filter(Boolean))].sort(); $("loc").innerHTML='<option value="">Semua lokasi</option>'+locations.map(v=>`<option value="${esc(v)}" ${v===selected?"selected":""}>${esc(v)}</option>`).join("");
  if(view==="donors"){
   $("publicHead").innerHTML="<tr><th>Daftar Desa / Wilayah</th></tr>";
 
@@ -184,7 +182,7 @@ function render(){
               font-size:11px;
               white-space:nowrap;
             ">
-              ${g.items.length} penerima　⌄
+              ${g.items.filter(x=>!x.archived).length} aktif　⌄
             </span>
           </button>
         </td>
@@ -199,8 +197,9 @@ function render(){
               gap:10px;
             ">
               <b>${esc(x.name)}</b>
-              <span class="pill ${x.history?.[db.active]?"green":"gray"}">
-                ${x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}
+               <span class="pill ${x.archived?"red":x.history?.[db.active]?"green":"gray"}">
+  ${x.archived?"Nonaktif: "+esc(x.archiveReason||"Tanpa keterangan"):x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}
+</span>
               </span>
             </div>
           </td>
@@ -210,9 +209,10 @@ function render(){
     ungrouped.map(x=>`
       <tr>
         <td>
-          <b>${esc(x.name)}</b>
-          <div class="tiny muted">${esc(x.location)}</div>
-        </td>
+  <b>${esc(x.name)}</b>
+  <div class="tiny muted">${esc(x.location)}</div>
+  ${x.archived?`<span class="pill red">Nonaktif: ${esc(x.archiveReason||"Tanpa keterangan")}</span>`:""}
+</td>
       </tr>
     `).join("");
 
@@ -231,7 +231,7 @@ function render(){
     };
   });
 
-}else{ }else{
+}else{
    $("publicHead").innerHTML="<tr><th>Nama anak</th><th>Keterangan</th><th>Desa</th><th>Status bantuan</th></tr>";
    $("publicRows").innerHTML=rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.condition)}</td><td>${esc(x.location||x.address)}</td><td><span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}</span></td></tr>`).join("");
  }
@@ -244,9 +244,8 @@ function renderAdmin(){
  if(page==="dashboard"){
   el.innerHTML=`<h4>Ringkasan Pengelolaan</h4><p class="muted tiny">Periode aktif: ${monthLabel(db.active)}</p><div class="adminstats"><div class="adminstat"><b>${activeRows("donors").length}</b><span>Penerima sembako</span></div><div class="adminstat"><b>${activeVillages().length}</b><span>Desa terdaftar</span></div><div class="adminstat"><b>${activeRows("orphans").length}</b><span>Anak yatim</span></div><div class="adminstat"><b>${db.messages.filter(m=>!m.read).length}</b><span>Pesan belum dibaca</span></div></div><p class="muted tiny">Data Oktober 2026 disiapkan sebagai periode awal. Masukkan daftar desa dan penerima Oktober terlebih dahulu, lalu buat periode bulan berikutnya agar daftar nama tersalin otomatis.</p>`;
  }else if(page==="manage"){
-  let list=activeRows(view);
-  el.innerHTML=`<div class="panel-head"><div><h4>${view==="donors"?"Penerima Bantuan Sembako":"Data Anak Yatim"}</h4><div class="muted tiny">${view==="donors"?"Daftar penerima dikelompokkan berdasarkan desa.":"Semua anak yatim berada dalam satu tabel; desa tetap dicatat per anak."}</div></div><div class="tabs"><button class="tab ${view==="donors"?"active":""}" id="adminDonors">Sembako</button><button class="tab ${view==="orphans"?"active":""}" id="adminOrphans">Anak Yatim</button></div></div><button class="primary" id="addNew">+ Tambah ${view==="donors"?"Penerima":"Anak Yatim"}</button><div class="tablebox" style="margin-top:13px"><table><thead><tr><th>Nama</th><th>${view==="donors"?"Desa":"Keterangan / Desa"}</th><th>Status bulan ini</th><th>Aksi</th></tr></thead><tbody>${list.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${view==="donors"?esc(x.location):esc(x.condition)+"<br>"+esc(x.location||x.address)}</td><td><span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah":"Belum"}</span></td><td><div class="rowactions"><button class="small ${x.history?.[db.active]?"secondary":"gold"}" data-status="${x.id}">${x.history?.[db.active]?"Batalkan":"Tandai sudah"}</button><button class="small secondary" data-edit="${x.id}">Edit</button><button class="small danger" data-archive="${x.id}">Arsipkan</button><<button class="small danger" data-archive="${x.id}">Nonaktifkan</button></div></td></tr>`).join("")||'<tr><td colspan="4" class="empty">Belum ada data.</td></tr>'}</tbody></table></div><p class="statusline">Nama penerima tersimpan sebagai data induk dan otomatis tersedia pada periode baru. Status penyaluran tetap terpisah untuk setiap bulan.</p>`;
-  $("adminDonors").onclick=()=>{view="donors";renderAdmin()};$("adminOrphans").onclick=()=>{view="orphans";renderAdmin()};$("addNew").onclick=()=>openEditor();
+  let list=db[view]||[];
+  el.innerHTML=`<div class="panel-head"><div><h4>${view==="donors"?"Penerima Bantuan Sembako":"Data Anak Yatim"}</h4><div class="muted tiny">${view==="donors"?"Daftar penerima dikelompokkan berdasarkan desa.":"Semua anak yatim berada dalam satu tabel; desa tetap dicatat per anak."}</div></div><div class="tabs"><button class="tab ${view==="donors"?"active":""}" id="adminDonors">Sembako</button><button class="tab ${view==="orphans"?"active":""}" id="adminOrphans">Anak Yatim</button></div></div><button class="primary" id="addNew">+ Tambah ${view==="donors"?"Penerima":"Anak Yatim"}</button><div class="tablebox" style="margin-top:13px"><table><thead><tr><th>Nama</th><th>${view==="donors"?"Desa":"Keterangan / Desa"}</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${list.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${view==="donors"?esc(x.location):esc(x.condition)+"<br>"+esc(x.location||x.address)}</td><td>${x.archived?`<span class="pill red">Nonaktif: ${esc(x.archiveReason||"Tanpa keterangan")}</span>`:`<span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}</span>`}</td><td><div class="rowactions">${x.archived?"":`<button class="small ${x.history?.[db.active]?"secondary":"gold"}" data-status="${x.id}">${x.history?.[db.active]?"Batalkan":"Tandai sudah"}</button>`}<button class="small secondary" data-edit="${x.id}">Edit</button><button class="small ${x.archived?"gold":"danger"}" data-archive="${x.id}">${x.archived?"Aktifkan kembali":"Nonaktifkan"}</button><button class="small danger" data-delete="${x.id}">Hapus permanen</button></div></td></tr>`).join("")||'<tr><td colspan="4" class="empty">Belum ada data.</td></tr>'}</tbody></table></div><p class="statusline">Data nonaktif tetap tersimpan dan dapat diedit, diaktifkan kembali, atau dihapus permanen. Penghapusan permanen juga menghapus riwayatnya.</p>`;  $("adminDonors").onclick=()=>{view="donors";renderAdmin()};$("adminOrphans").onclick=()=>{view="orphans";renderAdmin()};$("addNew").onclick=()=>openEditor();
   el.querySelectorAll("[data-status]").forEach(b=>b.onclick=()=>{let x=db[view].find(x=>x.id===b.dataset.status);x.history=x.history||{};x.history[db.active]=!x.history[db.active];persist()});
   el.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));
   el.querySelectorAll("[data-archive]").forEach(b=>b.onclick=()=>{
@@ -294,7 +293,68 @@ function renderAdmin(){
     x.archiveDate=new Date().toISOString();
     persist();
   }
-});  el.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{const x=db[view].find(v=>v.id===b.dataset.delete);if(x&&confirm("Hapus data "+x.name+" dari daftar aktif? Riwayat sebelumnya akan ikut terhapus.")){db[view]=db[view].filter(v=>v.id!==b.dataset.delete);persist()}});
+});  el.querySelectorAll("[data-archive]").forEach(b=>b.onclick=()=>{
+  let x=db[view].find(x=>x.id===b.dataset.archive);
+  if(!x)return;
+
+  if(x.archived){
+    if(confirm("Aktifkan kembali "+x.name+"? Data ini akan muncul lagi sebagai data aktif.")){
+      x.archived=false;
+      delete x.archiveReason;
+      delete x.archiveDate;
+      persist();
+    }
+    return;
+  }
+
+  let pilihan=prompt(
+    "Pilih alasan menonaktifkan "+x.name+"\n\n"+
+    "1. Wafat\n"+
+    "2. Pindah domisili\n"+
+    "3. Tidak lagi memenuhi kriteria\n"+
+    "4. Permintaan keluarga/penerima\n"+
+    "5. Alasan lainnya\n\n"+
+    "Masukkan nomor pilihan:"
+  );
+
+  if(pilihan===null)return;
+
+  const alasan={
+    "1":"Wafat",
+    "2":"Pindah domisili",
+    "3":"Tidak lagi memenuhi kriteria",
+    "4":"Permintaan keluarga/penerima"
+  };
+
+  let alasanAkhir=alasan[pilihan];
+
+  if(pilihan==="5"){
+    alasanAkhir=prompt("Tuliskan alasan lainnya:");
+    if(!alasanAkhir||!alasanAkhir.trim())return;
+    alasanAkhir=alasanAkhir.trim();
+  }
+
+  if(!alasanAkhir){
+    alert("Pilihan tidak valid.");
+    return;
+  }
+
+  if(confirm("Nonaktifkan "+x.name+"?\nAlasan: "+alasanAkhir)){
+    x.archived=true;
+    x.archiveReason=alasanAkhir;
+    x.archiveDate=new Date().toISOString();
+    persist();
+  }
+});
+
+el.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{
+  const x=db[view].find(v=>v.id===b.dataset.delete);
+
+  if(x&&confirm("Hapus PERMANEN data "+x.name+" beserta seluruh riwayatnya? Tindakan ini tidak bisa dibatalkan.")){
+    db[view]=db[view].filter(v=>v.id!==b.dataset.delete);
+    persist();
+  }
+});{const x=db[view].find(v=>v.id===b.dataset.delete);if(x&&confirm("Hapus data "+x.name+" dari daftar aktif? Riwayat sebelumnya akan ikut terhapus.")){db[view]=db[view].filter(v=>v.id!==b.dataset.delete);persist()}});
  }else if(page==="villages"){
   el.innerHTML=`<h4>Kelola 26 Desa / Wilayah</h4><p class="muted tiny">Daftar desa menjadi acuan bantuan sembako setiap bulan. Desa yang ditambahkan akan muncul pada periode aktif dan periode berikutnya. Mengarsipkan desa tidak menghapus data penerima lama.</p><div class="formgrid"><div class="field"><label>Nama desa baru</label><input id="villageName" placeholder="Masukkan nama desa"></div><div class="field" style="justify-content:end"><button class="primary" id="addVillage">+ Tambah Desa</button></div></div><div class="tablebox"><table><thead><tr><th>No.</th><th>Nama desa</th><th>Jumlah penerima aktif</th><th>Aksi</th></tr></thead><tbody>${activeVillages().map((v,i)=>`<tr><td>${i+1}</td><td><b>${esc(v.name)}</b></td><td>${activeRows("donors").filter(x=>(x.location||"").toLowerCase()===v.name.toLowerCase()).length}</td><td><div class="rowactions"><button class="small secondary" data-vrename="${v.id}">Ubah nama</button><button class="small danger" data-varchive="${v.id}">Kurangi / Arsipkan</button></div></td></tr>`).join("")||'<tr><td colspan="4" class="empty">Belum ada desa. Tambahkan daftar desa terlebih dahulu.</td></tr>'}</tbody></table></div><p class="statusline">Total desa aktif: ${activeVillages().length}. Jumlah desa tidak dikunci pada 26; admin bebas menambah atau mengurangi.</p>`;
   $("addVillage").onclick=()=>{let name=$("villageName").value.trim();if(!name)return alert("Isi nama desa.");if(db.villages.some(v=>!v.archived&&v.name.toLowerCase()===name.toLowerCase()))return alert("Desa sudah terdaftar.");db.villages.push({id:makeId(),name,archived:false});persist()};
@@ -326,7 +386,9 @@ function openEditor(id){
  let villageOptions=activeVillages().map(v=>`<option value="${esc(v.name)}" ${(x.location||x.address)===v.name?"selected":""}>${esc(v.name)}</option>`).join("");
  $("editFields").innerHTML=view==="donors"
  ?`<div class="field"><label>Nama penerima</label><input name="name" required maxlength="100" value="${esc(x.name||"")}"></div><div class="field"><label>Desa</label><select name="location" required><option value="">Pilih desa</option>${villageOptions}<option value="__other">+ Ketik desa lain</option></select><input name="otherLocation" placeholder="Nama desa/lokasi baru" style="margin-top:7px" value=""></div>`
- :`<div class="field"><label>Nama anak</label><input name="name" required maxlength="100" value="${esc(x.name||"")}"></div><div class="field"><label>Keterangan</label><select name="condition"><option ${x.condition==="Yatim"?"selected":""}>Yatim</option><option ${x.condition==="Piatu"?"selected":""}>Piatu</option><option ${x.condition==="Yatim Piatu"?"selected":""}>Yatim Piatu</option></select></div><div class="field"><label>Desa</label><select name="location" required><option value="">Pilih desa</option>${villageOptions}<option value="__other">+ Ketik desa lain</option></select><input name="otherLocation" placeholder="Nama desa/lokasi baru" style="margin-top:7px"></div>`;
+ :`<div class="field"><label>Nama anak</label><input name="name" required maxlength="100" value="${esc(x.name||"")}"></div><div class="field"><label>Keterangan</label><select name="condition"><option ${x.condition==="Yatim"?"selected":""}>Yatim</option><option ${x.condition==="Piatu"?"selected":""}>Piatu</option><option ${x.condition==="Yatim Piatu"?"selected":""}>Yatim Piatu</option></select></div><div class="field"><label>Desa</label><select name="location" required><option value="">Pilih desa</option>${villageOptions}<option value="__other">+ Ketik desa lain</option></select><input name="otherLocation" placeholder="Nama desa/lokasi baru" style="margin-top:7px"></div>`;if(x.archived){
+  $("editFields").insertAdjacentHTML("beforeend",`<div class="field wide"><label>Alasan nonaktif / keterangan</label><input name="archiveReason" maxlength="180" value="${esc(x.archiveReason||"")}" placeholder="Masukkan keterangan"></div>`);
+ }
  let sel=$("editFields").querySelector('[name="location"]');if(sel&&x.location&&!activeVillages().some(v=>v.name===x.location)){sel.value="__other";$("editFields").querySelector('[name="otherLocation"]').value=x.location}
  if(sel)sel.onchange=()=>{$("editFields").querySelector('[name="otherLocation"]').style.display=sel.value==="__other"?"block":"none"};
  $("editModal").classList.remove("hidden");
