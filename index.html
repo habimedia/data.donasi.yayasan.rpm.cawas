@@ -150,12 +150,56 @@ function renderAdmin(){
   el.innerHTML=`<h4>Ringkasan Pengelolaan</h4><p class="muted tiny">Periode aktif: ${monthLabel(db.active)}</p><div class="adminstats"><div class="adminstat"><b>${activeRows("donors").length}</b><span>Penerima sembako</span></div><div class="adminstat"><b>${activeVillages().length}</b><span>Desa terdaftar</span></div><div class="adminstat"><b>${activeRows("orphans").length}</b><span>Anak yatim</span></div><div class="adminstat"><b>${db.messages.filter(m=>!m.read).length}</b><span>Pesan belum dibaca</span></div></div><p class="muted tiny">Data Oktober 2026 disiapkan sebagai periode awal. Masukkan daftar desa dan penerima Oktober terlebih dahulu, lalu buat periode bulan berikutnya agar daftar nama tersalin otomatis.</p>`;
  }else if(page==="manage"){
   let list=activeRows(view);
-  el.innerHTML=`<div class="panel-head"><div><h4>${view==="donors"?"Penerima Bantuan Sembako":"Data Anak Yatim"}</h4><div class="muted tiny">${view==="donors"?"Daftar penerima dikelompokkan berdasarkan desa.":"Semua anak yatim berada dalam satu tabel; desa tetap dicatat per anak."}</div></div><div class="tabs"><button class="tab ${view==="donors"?"active":""}" id="adminDonors">Sembako</button><button class="tab ${view==="orphans"?"active":""}" id="adminOrphans">Anak Yatim</button></div></div><button class="primary" id="addNew">+ Tambah ${view==="donors"?"Penerima":"Anak Yatim"}</button><div class="tablebox" style="margin-top:13px"><table><thead><tr><th>Nama</th><th>${view==="donors"?"Desa":"Keterangan / Desa"}</th><th>Status bulan ini</th><th>Aksi</th></tr></thead><tbody>${list.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${view==="donors"?esc(x.location):esc(x.condition)+"<br>"+esc(x.location||x.address)}</td><td><span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah":"Belum"}</span></td><td><div class="rowactions"><button class="small ${x.history?.[db.active]?"secondary":"gold"}" data-status="${x.id}">${x.history?.[db.active]?"Batalkan":"Tandai sudah"}</button><button class="small secondary" data-edit="${x.id}">Edit</button><button class="small danger" data-archive="${x.id}">Arsipkan</button><button class="small danger" data-delete="${x.id}">Hapus</button></div></td></tr>`).join("")||'<tr><td colspan="4" class="empty">Belum ada data.</td></tr>'}</tbody></table></div><p class="statusline">Nama penerima tersimpan sebagai data induk dan otomatis tersedia pada periode baru. Status penyaluran tetap terpisah untuk setiap bulan.</p>`;
+  el.innerHTML=`<div class="panel-head"><div><h4>${view==="donors"?"Penerima Bantuan Sembako":"Data Anak Yatim"}</h4><div class="muted tiny">${view==="donors"?"Daftar penerima dikelompokkan berdasarkan desa.":"Semua anak yatim berada dalam satu tabel; desa tetap dicatat per anak."}</div></div><div class="tabs"><button class="tab ${view==="donors"?"active":""}" id="adminDonors">Sembako</button><button class="tab ${view==="orphans"?"active":""}" id="adminOrphans">Anak Yatim</button></div></div><button class="primary" id="addNew">+ Tambah ${view==="donors"?"Penerima":"Anak Yatim"}</button><div class="tablebox" style="margin-top:13px"><table><thead><tr><th>Nama</th><th>${view==="donors"?"Desa":"Keterangan / Desa"}</th><th>Status bulan ini</th><th>Aksi</th></tr></thead><tbody>${list.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${view==="donors"?esc(x.location):esc(x.condition)+"<br>"+esc(x.location||x.address)}</td><td><span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah":"Belum"}</span></td><td><div class="rowactions"><button class="small ${x.history?.[db.active]?"secondary":"gold"}" data-status="${x.id}">${x.history?.[db.active]?"Batalkan":"Tandai sudah"}</button><button class="small secondary" data-edit="${x.id}">Edit</button><button class="small danger" data-archive="${x.id}">Arsipkan</button><<button class="small danger" data-archive="${x.id}">Nonaktifkan</button></div></td></tr>`).join("")||'<tr><td colspan="4" class="empty">Belum ada data.</td></tr>'}</tbody></table></div><p class="statusline">Nama penerima tersimpan sebagai data induk dan otomatis tersedia pada periode baru. Status penyaluran tetap terpisah untuk setiap bulan.</p>`;
   $("adminDonors").onclick=()=>{view="donors";renderAdmin()};$("adminOrphans").onclick=()=>{view="orphans";renderAdmin()};$("addNew").onclick=()=>openEditor();
   el.querySelectorAll("[data-status]").forEach(b=>b.onclick=()=>{let x=db[view].find(x=>x.id===b.dataset.status);x.history=x.history||{};x.history[db.active]=!x.history[db.active];persist()});
   el.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));
-  el.querySelectorAll("[data-archive]").forEach(b=>b.onclick=()=>{if(confirm("Arsipkan data ini? Data akan tetap tersimpan.")){let x=db[view].find(x=>x.id===b.dataset.archive);x.archived=true;persist()}});
-  el.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{const x=db[view].find(v=>v.id===b.dataset.delete);if(x&&confirm("Hapus data "+x.name+" dari daftar aktif? Riwayat sebelumnya akan ikut terhapus.")){db[view]=db[view].filter(v=>v.id!==b.dataset.delete);persist()}});
+  el.querySelectorAll("[data-archive]").forEach(b=>b.onclick=()=>{
+  let x=db[view].find(x=>x.id===b.dataset.archive);
+  if(!x)return;
+
+  let pilihan=prompt(
+    "Pilih alasan menonaktifkan "+x.name+"\n\n"+
+    "1. Wafat\n"+
+    "2. Pindah domisili\n"+
+    "3. Tidak lagi memenuhi kriteria\n"+
+    "4. Permintaan keluarga/penerima\n"+
+    "5. Alasan lainnya\n\n"+
+    "Masukkan nomor pilihan:"
+  );
+
+  if(pilihan===null)return;
+
+  const alasan={
+    "1":"Wafat",
+    "2":"Pindah domisili",
+    "3":"Tidak lagi memenuhi kriteria",
+    "4":"Permintaan keluarga/penerima"
+  };
+
+  let alasanAkhir=alasan[pilihan];
+
+  if(pilihan==="5"){
+    alasanAkhir=prompt("Tuliskan alasan lainnya:");
+    if(!alasanAkhir||!alasanAkhir.trim())return;
+    alasanAkhir=alasanAkhir.trim();
+  }
+
+  if(!alasanAkhir){
+    alert("Pilihan tidak valid.");
+    return;
+  }
+
+  if(confirm(
+    "Nonaktifkan "+x.name+"?\n"+
+    "Alasan: "+alasanAkhir
+  )){
+    x.archived=true;
+    x.archiveReason=alasanAkhir;
+    x.archiveDate=new Date().toISOString();
+    persist();
+  }
+});  el.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{const x=db[view].find(v=>v.id===b.dataset.delete);if(x&&confirm("Hapus data "+x.name+" dari daftar aktif? Riwayat sebelumnya akan ikut terhapus.")){db[view]=db[view].filter(v=>v.id!==b.dataset.delete);persist()}});
  }else if(page==="villages"){
   el.innerHTML=`<h4>Kelola 26 Desa / Wilayah</h4><p class="muted tiny">Daftar desa menjadi acuan bantuan sembako setiap bulan. Desa yang ditambahkan akan muncul pada periode aktif dan periode berikutnya. Mengarsipkan desa tidak menghapus data penerima lama.</p><div class="formgrid"><div class="field"><label>Nama desa baru</label><input id="villageName" placeholder="Masukkan nama desa"></div><div class="field" style="justify-content:end"><button class="primary" id="addVillage">+ Tambah Desa</button></div></div><div class="tablebox"><table><thead><tr><th>No.</th><th>Nama desa</th><th>Jumlah penerima aktif</th><th>Aksi</th></tr></thead><tbody>${activeVillages().map((v,i)=>`<tr><td>${i+1}</td><td><b>${esc(v.name)}</b></td><td>${activeRows("donors").filter(x=>(x.location||"").toLowerCase()===v.name.toLowerCase()).length}</td><td><div class="rowactions"><button class="small secondary" data-vrename="${v.id}">Ubah nama</button><button class="small danger" data-varchive="${v.id}">Kurangi / Arsipkan</button></div></td></tr>`).join("")||'<tr><td colspan="4" class="empty">Belum ada desa. Tambahkan daftar desa terlebih dahulu.</td></tr>'}</tbody></table></div><p class="statusline">Total desa aktif: ${activeVillages().length}. Jumlah desa tidak dikunci pada 26; admin bebas menambah atau mengurangi.</p>`;
   $("addVillage").onclick=()=>{let name=$("villageName").value.trim();if(!name)return alert("Isi nama desa.");if(db.villages.some(v=>!v.archived&&v.name.toLowerCase()===name.toLowerCase()))return alert("Desa sudah terdaftar.");db.villages.push({id:makeId(),name,archived:false});persist()};
