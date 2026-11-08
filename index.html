@@ -235,8 +235,7 @@ function render(){
    $("publicRows").innerHTML=rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.condition)}</td><td>${esc(x.location||x.address)}</td><td><span class="pill ${x.archived?"red":x.history?.[db.active]?"green":"gray"}">${x.archived?"Nonaktif: "+esc(x.archiveReason||"Tanpa keterangan"):x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}</span></td></tr>`).join(""); }
  $("empty").classList.toggle("hidden",rows.length>0);$("adminSection").classList.toggle("hidden",!admin);if(admin)renderAdmin();
  if(db.hero) $("home").style.backgroundImage=`url("${db.hero}")`;else $("home").style.backgroundImage=""; }
-}
-function renderAdmin(){
+
 function renderAdmin(){
  document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
  let el=$("adminContent");
