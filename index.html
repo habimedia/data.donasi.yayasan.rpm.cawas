@@ -634,7 +634,29 @@ el.querySelectorAll("[data-amplop]").forEach(b=>{
 }else if(page==="villages"){
   el.innerHTML=`<h4>Kelola 26 Desa / Wilayah</h4><p class="muted tiny">Daftar desa menjadi acuan bantuan sembako setiap bulan. Desa yang ditambahkan akan muncul pada periode aktif dan periode berikutnya. Mengarsipkan desa tidak menghapus data penerima lama.</p><div class="formgrid"><div class="field"><label>Nama desa baru</label><input id="villageName" placeholder="Masukkan nama desa"></div><div class="field" style="justify-content:end"><button class="primary" id="addVillage">+ Tambah Desa</button></div></div><div class="tablebox"><table><thead><tr><th>No.</th><th>Nama desa</th><th>Jumlah penerima aktif</th><th>Aksi</th></tr></thead><tbody>${activeVillages().map((v,i)=>`<tr><td>${i+1}</td><td><b>${esc(v.name)}</b></td><td>${activeRows("donors").filter(x=>(x.location||"").toLowerCase()===v.name.toLowerCase()).length}</td><td><div class="rowactions"><button class="small secondary" data-vrename="${v.id}">Ubah nama</button><button class="small danger" data-varchive="${v.id}">Kurangi / Arsipkan</button></div></td></tr>`).join("")||'<tr><td colspan="4" class="empty">Belum ada desa. Tambahkan daftar desa terlebih dahulu.</td></tr>'}</tbody></table></div><p class="statusline">Total desa aktif: ${activeVillages().length}. Jumlah desa tidak dikunci pada 26; admin bebas menambah atau mengurangi.</p>`;
   $("addVillage").onclick=()=>{let name=$("villageName").value.trim();if(!name)return alert("Isi nama desa.");if(db.villages.some(v=>!v.archived&&v.name.toLowerCase()===name.toLowerCase()))return alert("Desa sudah terdaftar.");db.villages.push({id:makeId(),name,archived:false});persist()};
-  el.querySelectorAll("[data-vrename]").forEach(b=>b.onclick=()=>{let v=db.villages.find(x=>x.id===b.dataset.vrename);let n=prompt("Ubah nama desa:",v.name);if(n&&n.trim()){let old=v.name;v.name=n.trim();db.donors.forEach(x=>{if((x.location||"").toLowerCase()===old.toLowerCase())x.location=v.name});persist()}});
+  el.querySelectorAll("[data-vrename]").forEach(b=>b.onclick=()=>{let v=db.villages.find(x=>x.id===b.dataset.vrename);let n=prompt("Ubah nama desa:",v.name);if(n&&n.trim())if(db.villages.some(item=>
+  item.id!==v.id &&
+  !item.archived &&
+  item.name.toLowerCase()===n.trim().toLowerCase()
+)){
+  return alert("Nama desa tersebut sudah terdaftar.");
+ }{let old=v.name;
+v.name=n.trim();
+
+db.donors.forEach(x=>{
+  if((x.location||"").toLowerCase()===old.toLowerCase()){
+    x.location=v.name;
+  }
+});
+
+db.orphans.forEach(x=>{
+  if((x.location||x.address||"").toLowerCase()===old.toLowerCase()){
+    x.location=v.name;
+    x.address=v.name;
+  }
+});
+
+persist();}});
   el.querySelectorAll("[data-varchive]").forEach(b=>b.onclick=()=>{let v=db.villages.find(x=>x.id===b.dataset.varchive);if(confirm("Arsipkan desa "+v.name+"? Data penerima dan riwayat tidak dihapus.")){v.archived=true;persist()}});
  }else if(page==="periods"){
   el.innerHTML=`<h4>Periode Bulanan</h4><p class="muted tiny">Setiap periode menyimpan status penyaluran sendiri. Nama penerima dan daftar desa tetap dibawa ke bulan berikutnya; status bulan baru dimulai sebagai belum diberikan. Mulai dengan Oktober 2026 sebagai data patokan.</p><div class="field" style="max-width:260px"><label>Bulan baru</label><input type="month" id="newMonth" value="${monthKey()}"></div><button class="primary" id="makeMonth">Buat Periode Baru</button><div class="tablebox" style="margin-top:14px"><table><thead><tr><th>Periode</th><th>Jumlah penerima</th><th>Status</th></tr></thead><tbody>${db.periods.slice().sort().reverse().map(p=>`<tr><td>${monthLabel(p)}</td><td>${activeRows("donors").length}</td><td>${p===db.active?"Periode aktif":'<button class="small secondary" data-activate="'+p+'">Buka periode</button>'}</td></tr>`).join("")}</tbody></table></div>`;
