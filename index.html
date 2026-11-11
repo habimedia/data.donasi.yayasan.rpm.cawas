@@ -498,6 +498,7 @@ function openEditor(id){
     photoInput.value="";
     preview.textContent="Foto akan dihapus setelah disimpan.";
   };
+ }
  let sel=$("editFields").querySelector('[name="location"]');if(sel&&x.location&&!activeVillages().some(v=>v.name===x.location)){sel.value="__other";$("editFields").querySelector('[name="otherLocation"]').value=x.location}
  if(sel)sel.onchange=()=>{$("editFields").querySelector('[name="otherLocation"]').style.display=sel.value==="__other"?"block":"none"};
  $("editModal").classList.remove("hidden");
