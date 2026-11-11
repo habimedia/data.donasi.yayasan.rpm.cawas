@@ -82,7 +82,20 @@ main{padding-top:26px;padding-bottom:55px}.stats{display:grid;grid-template-colu
  </section>
  <section class="panel" id="data">
   <div class="panel-head"><div><h3>Data Penerima Manfaat</h3><div class="muted tiny" id="periodText">Periode berjalan</div></div><div class="tabs"><button class="tab active" data-view="donors">Penerima Donasi</button><button class="tab" data-view="orphans">Data Anak Yatim</button></div></div>
-  <div class="filters"><input id="search" placeholder="Cari nama atau lokasi..."><select id="loc"><option value="">Semua lokasi</option></select><select id="period"></select></div>
+  <div id="distributionRecap" class="stats" style="margin:0 0 14px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+ <div class="stat">
+  <div class="num" id="publicSembako">0</div>
+  <div class="label">Disalurkan sembako</div>
+ </div>
+ <div class="stat">
+  <div class="num" id="publicAmplop">0</div>
+  <div class="label">Disalurkan amplop</div>
+ </div>
+</div>
+
+<div id="distributionNote" class="muted tiny" style="margin:-5px 0 12px">
+ Status menunjukkan realisasi penyaluran sesuai kuota donasi pada bulan yang dipilih. Tidak mendapat alokasi bulan ini bukan berarti penerima tidak layak menerima bantuan.
+</div>
   <div class="tablebox"><table><thead id="publicHead"></thead><tbody id="publicRows"></tbody></table></div><div class="empty hidden" id="empty">Belum ada data yang dapat ditampilkan.</div>
   <div class="notice">Privasi penerima perlu dijaga. Sebelum website dipublikasikan dengan data asli, atur data mana yang boleh dilihat umum dan lindungi data pribadi melalui database serta hak akses admin.</div>
  </section>
@@ -149,6 +162,10 @@ function normalize(raw){
  d.donors.forEach(x=>{
   x.id=x.id||makeId();
   x.history=x.history||{};
+
+  x.sembakoHistory=x.sembakoHistory||{};
+  x.amplopHistory=x.amplopHistory||{};
+
   x.archived=!!x.archived;
 
   x.detailPhoto=x.detailPhoto||"";
@@ -156,8 +173,17 @@ function normalize(raw){
   x.detailDate=x.detailDate||"";
 
   d.periods.forEach(p=>{
-    if(typeof x.history[p]!=="boolean")x.history[p]=false;
-  });
+  if(typeof x.history[p]!=="boolean")x.history[p]=false;
+
+  // Status lama yang sudah ditandai tetap dianggap sebagai penyaluran sembako.
+  if(typeof x.sembakoHistory[p]!=="boolean"){
+    x.sembakoHistory[p]=!!x.history[p];
+  }
+
+  if(typeof x.amplopHistory[p]!=="boolean"){
+    x.amplopHistory[p]=false;
+  }
+});
 });
  d.orphans.forEach(x=>{x.id=x.id||makeId();x.history=x.history||{};x.archived=!!x.archived;d.periods.forEach(p=>{if(typeof x.history[p]!=="boolean")x.history[p]=false})});
  d.villages.forEach(v=>{v.id=v.id||makeId();v.archived=!!v.archived});
@@ -176,7 +202,13 @@ function render(){
  $("year").textContent=new Date().getFullYear();
  $("period").innerHTML=db.periods.slice().sort().reverse().map(p=>`<option value="${p}" ${p===db.active?"selected":""}>${monthLabel(p)}</option>`).join("");
  $("periodText").textContent="Periode: "+monthLabel(db.active);
- let d=activeRows("donors"),o=activeRows("orphans"),all=[...d,...o],given=all.filter(x=>x.history?.[db.active]).length;
+ let d=activeRows("donors"),o=activeRows("orphans"),all=[...d,...o],given=d.filter(x=>x.sembakoHistory?.[db.active]).length+o.filter(x=>x.history?.[db.active]).length;
+
+$("publicSembako").textContent=d.filter(x=>x.sembakoHistory?.[db.active]).length;
+$("publicAmplop").textContent=d.filter(x=>x.amplopHistory?.[db.active]).length;
+
+$("distributionRecap").classList.toggle("hidden",view!=="donors");
+$("distributionNote").classList.toggle("hidden",view!=="donors");
  $("sDonor").textContent=d.length;$("sOrphan").textContent=o.length;$("sGiven").textContent=given;$("sPending").textContent=all.length-given;
  document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
  let term=$("search").value.toLowerCase(),selected=$("loc").value;
@@ -254,8 +286,14 @@ function render(){
   data-donor-detail="${esc(x.id)}">
   ${esc(x.name)}
 </button>
-               <span class="pill ${x.archived?"red":x.history?.[db.active]?"green":"gray"}">
-  ${x.archived?"Nonaktif: "+esc(x.archiveReason||"Tanpa keterangan"):x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}
+               <span style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
+  <span class="pill ${x.sembakoHistory?.[db.active]?"green":"gray"}">
+    Sembako: ${x.sembakoHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
+  </span>
+
+  <span class="pill ${x.amplopHistory?.[db.active]?"green":"gray"}">
+    Amplop: ${x.amplopHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
+  </span>
 </span>
             </div>
           </td>
@@ -272,6 +310,14 @@ function render(){
   ${esc(x.name)}
 </button>
   <div class="tiny muted">${esc(x.location)}</div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">
+ <span class="pill ${x.sembakoHistory?.[db.active]?"green":"gray"}">
+  Sembako: ${x.sembakoHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
+ </span>
+ <span class="pill ${x.amplopHistory?.[db.active]?"green":"gray"}">
+  Amplop: ${x.amplopHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
+ </span>
+</div>
   ${x.archived?`<span class="pill red">Nonaktif: ${esc(x.archiveReason||"Tanpa keterangan")}</span>`:""}
 </td>
       </tr>
@@ -367,14 +413,30 @@ function renderAdmin(){
       <div style="min-width:150px;flex:1">
         <b>${esc(x.name)}</b>
         ${view==="orphans"?`<div class="tiny muted">${esc(x.condition||"-")}</div>`:""}
-        <div style="margin-top:5px">
-          <span class="pill ${x.archived?"red":x.history?.[db.active]?"green":"gray"}">
-            ${x.archived?"Nonaktif: "+esc(x.archiveReason||"Tanpa keterangan"):x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}
-          </span>
-        </div>
+        <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">
+  ${view==="donors"?`
+   <span class="pill ${x.sembakoHistory?.[db.active]?"green":"gray"}">
+    Sembako: ${x.sembakoHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
+   </span>
+   <span class="pill ${x.amplopHistory?.[db.active]?"green":"gray"}">
+    Amplop: ${x.amplopHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
+   </span>
+  `:`<span class="pill ${x.archived?"red":x.history?.[db.active]?"green":"gray"}">
+    ${x.archived?"Nonaktif: "+esc(x.archiveReason||"Tanpa keterangan"):x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}
+  </span>`}
+</div>
       </div>
       <div class="rowactions">
-        ${x.archived?"":`<button class="small ${x.history?.[db.active]?"secondary":"gold"}" data-status="${x.id}">${x.history?.[db.active]?"Batalkan":"Tandai sudah"}</button>`}
+        ${x.archived?"":view==="donors"?`
+  <button class="small ${x.sembakoHistory?.[db.active]?"secondary":"gold"}" data-sembako="${x.id}">
+    ${x.sembakoHistory?.[db.active]?"Batalkan sembako":"Tandai sembako"}
+  </button>
+  <button class="small ${x.amplopHistory?.[db.active]?"secondary":"gold"}" data-amplop="${x.id}">
+    ${x.amplopHistory?.[db.active]?"Batalkan amplop":"Tandai amplop"}
+  </button>
+`:`<button class="small ${x.history?.[db.active]?"secondary":"gold"}" data-status="${x.id}">
+  ${x.history?.[db.active]?"Batalkan":"Tandai sudah"}
+</button>`}
         <button class="small secondary" data-edit="${x.id}">Edit</button>
         <button class="small ${x.archived?"gold":"danger"}" data-archive="${x.id}">${x.archived?"Aktifkan kembali":"Nonaktifkan"}</button>
         <button class="small danger" data-delete="${x.id}">Hapus permanen</button>
@@ -467,7 +529,32 @@ function renderAdmin(){
       if(q&&matches)group.open=true;
     });
   };
+el.querySelectorAll("[data-sembako]").forEach(b=>{
+  b.onclick=()=>{
+    let x=db.donors.find(x=>x.id===b.dataset.sembako);
+    if(!x)return;
 
+    x.sembakoHistory=x.sembakoHistory||{};
+    x.sembakoHistory[db.active]=!x.sembakoHistory[db.active];
+
+    x.history=x.history||{};
+    x.history[db.active]=x.sembakoHistory[db.active];
+
+    persist();
+  };
+});
+
+el.querySelectorAll("[data-amplop]").forEach(b=>{
+  b.onclick=()=>{
+    let x=db.donors.find(x=>x.id===b.dataset.amplop);
+    if(!x)return;
+
+    x.amplopHistory=x.amplopHistory||{};
+    x.amplopHistory[db.active]=!x.amplopHistory[db.active];
+
+    persist();
+  };
+});
   el.querySelectorAll("[data-status]").forEach(b=>
     b.onclick=()=>{
       let x=db[view].find(x=>x.id===b.dataset.status);
@@ -551,7 +638,32 @@ function renderAdmin(){
   el.querySelectorAll("[data-varchive]").forEach(b=>b.onclick=()=>{let v=db.villages.find(x=>x.id===b.dataset.varchive);if(confirm("Arsipkan desa "+v.name+"? Data penerima dan riwayat tidak dihapus.")){v.archived=true;persist()}});
  }else if(page==="periods"){
   el.innerHTML=`<h4>Periode Bulanan</h4><p class="muted tiny">Setiap periode menyimpan status penyaluran sendiri. Nama penerima dan daftar desa tetap dibawa ke bulan berikutnya; status bulan baru dimulai sebagai belum diberikan. Mulai dengan Oktober 2026 sebagai data patokan.</p><div class="field" style="max-width:260px"><label>Bulan baru</label><input type="month" id="newMonth" value="${monthKey()}"></div><button class="primary" id="makeMonth">Buat Periode Baru</button><div class="tablebox" style="margin-top:14px"><table><thead><tr><th>Periode</th><th>Jumlah penerima</th><th>Status</th></tr></thead><tbody>${db.periods.slice().sort().reverse().map(p=>`<tr><td>${monthLabel(p)}</td><td>${activeRows("donors").length}</td><td>${p===db.active?"Periode aktif":'<button class="small secondary" data-activate="'+p+'">Buka periode</button>'}</td></tr>`).join("")}</tbody></table></div>`;
-  $("makeMonth").onclick=()=>{let p=$("newMonth").value;if(!p)return alert("Pilih bulan.");if(db.periods.includes(p))return alert("Periode sudah tersedia.");db.periods.push(p);db.active=p;[...db.donors,...db.orphans].forEach(x=>{x.history=x.history||{};x.history[p]=false});persist()};
+  $("makeMonth").onclick=()=>{
+  let p=$("newMonth").value;
+
+  if(!p)return alert("Pilih bulan.");
+  if(db.periods.includes(p))return alert("Periode sudah tersedia.");
+
+  db.periods.push(p);
+  db.active=p;
+
+  db.donors.forEach(x=>{
+    x.history=x.history||{};
+    x.sembakoHistory=x.sembakoHistory||{};
+    x.amplopHistory=x.amplopHistory||{};
+
+    x.history[p]=false;
+    x.sembakoHistory[p]=false;
+    x.amplopHistory[p]=false;
+  });
+
+  db.orphans.forEach(x=>{
+    x.history=x.history||{};
+    x.history[p]=false;
+  });
+
+  persist();
+}; p=$("newMonth").value;if(!p)return alert("Pilih bulan.");if(db.periods.includes(p))return alert("Periode sudah tersedia.");db.periods.push(p);db.active=p;[...db.donors,...db.orphans].forEach(x=>{x.history=x.history||{};x.history[p]=false});persist()};
   el.querySelectorAll("[data-activate]").forEach(b=>b.onclick=()=>{db.active=b.dataset.activate;persist()});
  }else if(page==="messages"){
   el.innerHTML=`<h4>Pesan Masuk</h4><p class="muted tiny">Pesan dari formulir Hubungi Admin tersimpan pada browser ini. Pengiriman lintas perangkat memerlukan database online.</p>${db.messages.slice().reverse().map(m=>`<div class="message"><div class="messagehead"><b>${esc(m.sender)} ${m.read?"":"• Baru"}</b><span class="tiny muted">${new Date(m.created).toLocaleString("id-ID")}</span></div><div class="tiny muted">${esc(m.reply)}</div><p>${esc(m.body)}</p><div class="rowactions"><button class="small secondary" data-read="${m.id}">${m.read?"Tandai belum dibaca":"Tandai dibaca"}</button><button class="small danger" data-delmsg="${m.id}">Hapus</button></div></div>`).join("")||'<div class="empty">Belum ada pesan.</div>'}`;
