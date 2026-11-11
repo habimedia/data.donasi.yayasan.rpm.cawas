@@ -286,7 +286,7 @@ $("distributionNote").classList.toggle("hidden",view!=="donors");
   data-donor-detail="${esc(x.id)}">
   ${esc(x.name)}
 </button>
-               <span style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
+               <span style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">${x.archived?`<span class="pill red">Nonaktif: ${esc(x.archiveReason||"Tanpa keterangan")}</span>`:""}
   <span class="pill ${x.sembakoHistory?.[db.active]?"green":"gray"}">
     Sembako: ${x.sembakoHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
   </span>
@@ -414,7 +414,7 @@ function renderAdmin(){
         <b>${esc(x.name)}</b>
         ${view==="orphans"?`<div class="tiny muted">${esc(x.condition||"-")}</div>`:""}
         <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">
-  ${view==="donors"?`
+  ${view==="donors"?`${x.archived?`<span class="pill red">Nonaktif: ${esc(x.archiveReason||"Tanpa keterangan")}</span>`:""}
    <span class="pill ${x.sembakoHistory?.[db.active]?"green":"gray"}">
     Sembako: ${x.sembakoHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
    </span>
@@ -663,8 +663,7 @@ el.querySelectorAll("[data-amplop]").forEach(b=>{
   });
 
   persist();
-}; p=$("newMonth").value;if(!p)return alert("Pilih bulan.");if(db.periods.includes(p))return alert("Periode sudah tersedia.");db.periods.push(p);db.active=p;[...db.donors,...db.orphans].forEach(x=>{x.history=x.history||{};x.history[p]=false});persist()};
-  el.querySelectorAll("[data-activate]").forEach(b=>b.onclick=()=>{db.active=b.dataset.activate;persist()});
+};   el.querySelectorAll("[data-activate]").forEach(b=>b.onclick=()=>{db.active=b.dataset.activate;persist()});
  }else if(page==="messages"){
   el.innerHTML=`<h4>Pesan Masuk</h4><p class="muted tiny">Pesan dari formulir Hubungi Admin tersimpan pada browser ini. Pengiriman lintas perangkat memerlukan database online.</p>${db.messages.slice().reverse().map(m=>`<div class="message"><div class="messagehead"><b>${esc(m.sender)} ${m.read?"":"• Baru"}</b><span class="tiny muted">${new Date(m.created).toLocaleString("id-ID")}</span></div><div class="tiny muted">${esc(m.reply)}</div><p>${esc(m.body)}</p><div class="rowactions"><button class="small secondary" data-read="${m.id}">${m.read?"Tandai belum dibaca":"Tandai dibaca"}</button><button class="small danger" data-delmsg="${m.id}">Hapus</button></div></div>`).join("")||'<div class="empty">Belum ada pesan.</div>'}`;
   el.querySelectorAll("[data-read]").forEach(b=>b.onclick=()=>{let m=db.messages.find(m=>m.id===b.dataset.read);m.read=!m.read;persist()});
