@@ -81,8 +81,18 @@ main{padding-top:26px;padding-bottom:55px}.stats{display:grid;grid-template-colu
   <div class="stat"><div class="num" id="sPending">0</div><div class="label">Belum menerima periode ini</div></div>
  </section>
  <section class="panel" id="data">
-  <div class="panel-head"><div><h3>Data Penerima Manfaat</h3><div class="muted tiny" id="periodText">Periode berjalan</div></div><div class="tabs"><button class="tab active" data-view="donors">Penerima Donasi</button><button class="tab" data-view="orphans">Data Anak Yatim</button></div></div>
-  <div id="distributionRecap" class="stats" style="margin:0 0 14px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+  <div class="filters">
+  <select id="period" aria-label="Pilih periode"></select>
+
+  <input
+    id="search"
+    type="search"
+    placeholder="Cari nama penerima atau desa...">
+
+  <select id="loc" aria-label="Filter desa">
+    <option value="">Semua lokasi</option>
+  </select>
+  </div>  <div id="distributionRecap" class="stats" style="margin:0 0 14px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
  <div class="stat">
   <div class="num" id="publicSembako">0</div>
   <div class="label">Disalurkan sembako</div>
@@ -391,7 +401,6 @@ function renderAdmin(){
  let el=$("adminContent");
  if(page==="dashboard"){
   el.innerHTML=`<h4>Ringkasan Pengelolaan</h4><p class="muted tiny">Periode aktif: ${monthLabel(db.active)}</p><div class="adminstats"><div class="adminstat"><b>${activeRows("donors").length}</b><span>Penerima sembako</span></div><div class="adminstat"><b>${activeVillages().length}</b><span>Desa terdaftar</span></div><div class="adminstat"><b>${activeRows("orphans").length}</b><span>Anak yatim</span></div><div class="adminstat"><b>${db.messages.filter(m=>!m.read).length}</b><span>Pesan belum dibaca</span></div></div><p class="muted tiny">Data Oktober 2026 disiapkan sebagai periode awal. Masukkan daftar desa dan penerima Oktober terlebih dahulu, lalu buat periode bulan berikutnya agar daftar nama tersalin otomatis.</p>`;
-}else if(page==="villages"){
   
 }else if(page==="manage"){
   const list=db[view]||[];
@@ -687,23 +696,7 @@ el.querySelectorAll("[data-amplop]").forEach(b=>{
     persist();
   };
 });
-      if((x.location||"").trim().toLowerCase()===old.trim().toLowerCase()){
-        x.location=n;
-      }
-    });
-
-    db.orphans.forEach(x=>{
-      const oldLocation=(x.location||x.address||"").trim();
-
-      if(oldLocation.toLowerCase()===old.trim().toLowerCase()){
-        x.location=n;
-        x.address=n;
-      }
-    });
-
-    persist();
-  };
-});persist();}});
+      
   el.querySelectorAll("[data-varchive]").forEach(b=>b.onclick=()=>{let v=db.villages.find(x=>x.id===b.dataset.varchive);if(confirm("Arsipkan desa "+v.name+"? Data penerima dan riwayat tidak dihapus.")){v.archived=true;persist()}});
  }else if(page==="periods"){
   el.innerHTML=`<h4>Periode Bulanan</h4><p class="muted tiny">Setiap periode menyimpan status penyaluran sendiri. Nama penerima dan daftar desa tetap dibawa ke bulan berikutnya; status bulan baru dimulai sebagai belum diberikan. Mulai dengan Oktober 2026 sebagai data patokan.</p><div class="field" style="max-width:260px"><label>Bulan baru</label><input type="month" id="newMonth" value="${monthKey()}"></div><button class="primary" id="makeMonth">Buat Periode Baru</button><div class="tablebox" style="margin-top:14px"><table><thead><tr><th>Periode</th><th>Jumlah penerima</th><th>Status</th></tr></thead><tbody>${db.periods.slice().sort().reverse().map(p=>`<tr><td>${monthLabel(p)}</td><td>${activeRows("donors").length}</td><td>${p===db.active?"Periode aktif":'<button class="small secondary" data-activate="'+p+'">Buka periode</button>'}</td></tr>`).join("")}</tbody></table></div>`;
@@ -852,15 +845,6 @@ if(sel){
   };
 }
 
-  sel.onchange=()=>{
-    otherLocationInput.style.display=
-      sel.value==="__other"?"block":"none";
-
-    if(sel.value!=="__other"){
-      otherLocationInput.value="";
-    }
-  };
- }
  $("editModal").classList.remove("hidden");
 }
 $("editForm").onsubmit=e=>{
@@ -908,7 +892,16 @@ $("editForm").onsubmit=e=>{
 };
 $("editCancel").onclick=()=>$("editModal").classList.add("hidden");
 document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{view=b.dataset.view;$("search").value="";$("loc").value="";render()});
-document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{page=b.dataset.page;renderAdmin()});
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{
+  page=b.dataset.page;
+
+  if(page==="distribution"){
+    page="manage";
+    view="donors";
+  }
+
+  renderAdmin();
+});
 $("period").onchange=e=>{db.active=e.target.value;persist()};$("search").oninput=render;$("loc").onchange=render;
 $("loginOpen").onclick=()=>{$("loginModal").classList.remove("hidden");$("pw").value="";$("loginMsg").textContent="";$("pw").type="password";$("togglePw").textContent="Lihat"};
 $("loginCancel").onclick=()=>$("loginModal").classList.add("hidden");$("togglePw").onclick=()=>{let p=$("pw");p.type=p.type==="password"?"text":"password";$("togglePw").textContent=p.type==="password"?"Lihat":"Sembunyikan"};
