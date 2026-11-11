@@ -686,6 +686,23 @@ el.querySelectorAll("[data-amplop]").forEach(b=>{
 
     persist();
   };
+});
+      if((x.location||"").trim().toLowerCase()===old.trim().toLowerCase()){
+        x.location=n;
+      }
+    });
+
+    db.orphans.forEach(x=>{
+      const oldLocation=(x.location||x.address||"").trim();
+
+      if(oldLocation.toLowerCase()===old.trim().toLowerCase()){
+        x.location=n;
+        x.address=n;
+      }
+    });
+
+    persist();
+  };
 });persist();}});
   el.querySelectorAll("[data-varchive]").forEach(b=>b.onclick=()=>{let v=db.villages.find(x=>x.id===b.dataset.varchive);if(confirm("Arsipkan desa "+v.name+"? Data penerima dan riwayat tidak dihapus.")){v.archived=true;persist()}});
  }else if(page==="periods"){
@@ -824,6 +841,16 @@ if(sel&&existingLocation&&!activeVillages().some(v=>
 if(sel){
   otherLocationInput.style.display=
     sel.value==="__other"?"block":"none";
+
+  sel.onchange=()=>{
+    otherLocationInput.style.display=
+      sel.value==="__other"?"block":"none";
+
+    if(sel.value!=="__other"){
+      otherLocationInput.value="";
+    }
+  };
+}
 
   sel.onchange=()=>{
     otherLocationInput.style.display=
