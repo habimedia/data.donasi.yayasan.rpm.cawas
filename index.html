@@ -106,6 +106,17 @@ main{padding-top:26px;padding-bottom:55px}.stats{display:grid;grid-template-colu
  <div class="field"><label for="pw">Kata sandi admin</label><div class="password-wrap"><input id="pw" type="password" autocomplete="current-password" placeholder="Masukkan kata sandi"><button type="button" id="togglePw">Lihat</button></div></div>
 <div class="modal-actions"><button class="secondary" id="loginCancel">Tutup</button><button class="primary" id="loginGo">Masuk</button></div><div id="loginMsg" class="statusline"></div></div>
  </div></div>
+ <div class="modalbg hidden" id="donorDetailModal">
+  <div class="modal">
+    <div class="panel-head">
+      <h3 id="donorDetailName">Detail Penerima</h3>
+      <button type="button" class="secondary small" id="donorDetailClose">
+        Tutup ✕
+      </button>
+    </div>
+    <div id="donorDetailContent"></div>
+  </div>
+ </div>
 <div class="modalbg hidden" id="editModal"><div class="modal"><h3 id="editTitle">Tambah Data</h3><form id="editForm"><div class="formgrid" id="editFields"></div><div class="modal-actions"><button type="button" class="secondary" id="editCancel">Batal</button><button class="primary">Simpan Data</button></div></form></div></div>
 <input id="heroInput" class="hidden" type="file" accept="image/*"><input id="importInput" class="hidden" type="file" accept=".json,.csv,application/json,text/csv">
 <script>
@@ -135,7 +146,19 @@ function normalize(raw){
  [...new Set(d.donors.map(x=>(x.location||"").trim()).filter(Boolean))].forEach(name=>{
    if(!d.villages.some(v=>v.name.toLowerCase()===name.toLowerCase()))d.villages.push({id:makeId(),name,archived:false});
  });
- d.donors.forEach(x=>{x.id=x.id||makeId();x.history=x.history||{};x.archived=!!x.archived;d.periods.forEach(p=>{if(typeof x.history[p]!=="boolean")x.history[p]=false})});
+ d.donors.forEach(x=>{
+  x.id=x.id||makeId();
+  x.history=x.history||{};
+  x.archived=!!x.archived;
+
+  x.detailPhoto=x.detailPhoto||"";
+  x.detailCondition=x.detailCondition||"";
+  x.detailDate=x.detailDate||"";
+
+  d.periods.forEach(p=>{
+    if(typeof x.history[p]!=="boolean")x.history[p]=false;
+  });
+});
  d.orphans.forEach(x=>{x.id=x.id||makeId();x.history=x.history||{};x.archived=!!x.archived;d.periods.forEach(p=>{if(typeof x.history[p]!=="boolean")x.history[p]=false})});
  d.villages.forEach(v=>{v.id=v.id||makeId();v.archived=!!v.archived});
  d.schema=3;
@@ -225,7 +248,12 @@ function render(){
               align-items:center;
               gap:10px;
             ">
-              <b>${esc(x.name)}</b>
+              <button
+  type="button"
+  class="donor-detail-link"
+  data-donor-detail="${esc(x.id)}">
+  ${esc(x.name)}
+</button>
                <span class="pill ${x.archived?"red":x.history?.[db.active]?"green":"gray"}">
   ${x.archived?"Nonaktif: "+esc(x.archiveReason||"Tanpa keterangan"):x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}
 </span>
@@ -237,7 +265,12 @@ function render(){
     ungrouped.map(x=>`
       <tr>
         <td>
-  <b>${esc(x.name)}</b>
+  <button
+  type="button"
+  class="donor-detail-link"
+  data-donor-detail="${esc(x.id)}">
+  ${esc(x.name)}
+</button>
   <div class="tiny muted">${esc(x.location)}</div>
   ${x.archived?`<span class="pill red">Nonaktif: ${esc(x.archiveReason||"Tanpa keterangan")}</span>`:""}
 </td>
@@ -258,13 +291,42 @@ function render(){
       });
     };
   });
-
+$("publicRows").querySelectorAll("[data-donor-detail]").forEach(b=>{
+  b.onclick=()=>showDonorDetail(b.dataset.donorDetail);
+});
 }else{
    $("publicHead").innerHTML="<tr><th>Nama anak</th><th>Keterangan</th><th>Desa</th><th>Status bantuan</th></tr>";
    $("publicRows").innerHTML=rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.condition)}</td><td>${esc(x.location||x.address)}</td><td><span class="pill ${x.archived?"red":x.history?.[db.active]?"green":"gray"}">${x.archived?"Nonaktif: "+esc(x.archiveReason||"Tanpa keterangan"):x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}</span></td></tr>`).join(""); }
  $("empty").classList.toggle("hidden",rows.length>0);$("adminSection").classList.toggle("hidden",!admin);if(admin)renderAdmin();
  if(db.hero) $("home").style.backgroundImage=`url("${db.hero}")`;else $("home").style.backgroundImage=""; }
+function showDonorDetail(id){
+  const donor=db.donors.find(x=>x.id===id);
+  if(!donor)return;
 
+  $("donorDetailName").textContent=donor.name;
+
+  const photo=donor.detailPhoto
+    ? `<img class="detail-photo" src="${donor.detailPhoto}" alt="Dokumentasi">`
+    : `<p>Belum ada foto dokumentasi.</p>`;
+
+  $("donorDetailContent").innerHTML=`
+    ${photo}
+    <h4>Keterangan kondisi</h4>
+    <p class="detail-description">
+      ${esc(donor.detailCondition||"Belum ada keterangan.")}
+    </p>
+    <p><b>Tanggal dokumentasi:</b>
+      ${esc(donor.detailDate||"Belum dicantumkan")}
+    </p>
+    <p><b>Desa:</b> ${esc(donor.location||"-")}</p>
+  `;
+
+  $("donorDetailModal").classList.remove("hidden");
+}
+
+$("donorDetailClose").onclick=()=>{
+  $("donorDetailModal").classList.add("hidden");
+};
 function renderAdmin(){
  document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
  let el=$("adminContent");
@@ -365,9 +427,77 @@ function openEditor(id){
  let villageOptions=activeVillages().map(v=>`<option value="${esc(v.name)}" ${(x.location||x.address)===v.name?"selected":""}>${esc(v.name)}</option>`).join("");
  $("editFields").innerHTML=view==="donors"
  ?`<div class="field"><label>Nama penerima</label><input name="name" required maxlength="100" value="${esc(x.name||"")}"></div><div class="field"><label>Desa</label><select name="location" required><option value="">Pilih desa</option>${villageOptions}<option value="__other">+ Ketik desa lain</option></select><input name="otherLocation" placeholder="Nama desa/lokasi baru" style="margin-top:7px" value=""></div>`
- :`<div class="field"><label>Nama anak</label><input name="name" required maxlength="100" value="${esc(x.name||"")}"></div><div class="field"><label>Keterangan</label><select name="condition"><option ${x.condition==="Yatim"?"selected":""}>Yatim</option><option ${x.condition==="Piatu"?"selected":""}>Piatu</option><option ${x.condition==="Yatim Piatu"?"selected":""}>Yatim Piatu</option></select></div><div class="field"><label>Desa</label><select name="location" required><option value="">Pilih desa</option>${villageOptions}<option value="__other">+ Ketik desa lain</option></select><input name="otherLocation" placeholder="Nama desa/lokasi baru" style="margin-top:7px"></div>`;if(x.archived){
+ :`<div class="field"><label>Nama anak</label><input name="name" required maxlength="100" value="${esc(x.name||"")}"></div><div class="field"><label>Keterangan</label><select name="condition"><option ${x.condition==="Yatim"?"selected":""}>Yatim</option><option ${x.condition==="Piatu"?"selected":""}>Piatu</option><option ${x.condition==="Yatim Piatu"?"selected":""}>Yatim Piatu</option></select></div><div class="field"><label>Desa</label><select name="location" required><option value="">Pilih desa</option>${villageOptions}<option value="__other">+ Ketik desa lain</option></select><input name="otherLocation" placeholder="Nama desa/lokasi baru" style="margin-top:7px"></div>`;if(view==="donors"){
+  $("editFields").insertAdjacentHTML("beforeend",`
+    <div class="field wide">
+      <label>Foto dokumentasi (maksimal 500 KB)</label>
+      <input
+        type="file"
+        id="donorDetailPhotoInput"
+        accept="image/jpeg,image/png,image/webp">
+      <div id="donorDetailPhotoPreview"></div>
+      <button
+        type="button"
+        class="danger small"
+        id="removeDonorDetailPhoto">
+        Hapus foto
+      </button>
+    </div>
+
+    <div class="field wide">
+      <label>Keterangan kondisi penerima</label>
+      <textarea
+        name="detailCondition"
+        rows="4"
+        maxlength="1200"
+        placeholder="Tuliskan kondisi penerima...">${esc(x.detailCondition||"")}</textarea>
+    </div>
+
+    <div class="field">
+      <label>Tanggal dokumentasi</label>
+      <input
+        type="date"
+        name="detailDate"
+        value="${esc(x.detailDate||"")}">
+    </div>
+  `);
+ }if(x.archived){
   $("editFields").insertAdjacentHTML("beforeend",`<div class="field wide"><label>Alasan nonaktif / keterangan</label><input name="archiveReason" maxlength="180" value="${esc(x.archiveReason||"")}" placeholder="Masukkan keterangan"></div>`);
  }
+ if(view==="donors"){
+  const photoInput=$("donorDetailPhotoInput");
+  const preview=$("donorDetailPhotoPreview");
+  const remove=$("removeDonorDetailPhoto");
+
+  photoInput.dataset.value=x.detailPhoto||"";
+
+  photoInput.onchange=()=>{
+    const file=photoInput.files[0];
+    if(!file)return;
+
+    if(file.size>500*1024){
+      alert("Ukuran foto maksimal 500 KB.");
+      photoInput.value="";
+      return;
+    }
+
+    const reader=new FileReader();
+
+    reader.onload=()=>{
+      photoInput.dataset.value=reader.result;
+
+      preview.innerHTML=
+        `<img class="detail-photo" src="${reader.result}">`;
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  remove.onclick=()=>{
+    photoInput.dataset.value="__REMOVE__";
+    photoInput.value="";
+    preview.textContent="Foto akan dihapus setelah disimpan.";
+  };
  let sel=$("editFields").querySelector('[name="location"]');if(sel&&x.location&&!activeVillages().some(v=>v.name===x.location)){sel.value="__other";$("editFields").querySelector('[name="otherLocation"]').value=x.location}
  if(sel)sel.onchange=()=>{$("editFields").querySelector('[name="otherLocation"]').style.display=sel.value==="__other"?"block":"none"};
  $("editModal").classList.remove("hidden");
@@ -375,7 +505,21 @@ function openEditor(id){
 $("editForm").onsubmit=e=>{
  e.preventDefault();let obj=Object.fromEntries(new FormData(e.target));
  if(obj.location==="__other"){obj.location=(obj.otherLocation||"").trim();if(!obj.location)return alert("Isi nama desa.");if(!db.villages.some(v=>!v.archived&&v.name.toLowerCase()===obj.location.toLowerCase()))db.villages.push({id:makeId(),name:obj.location,archived:false})}
- delete obj.otherLocation;
+ delete obj.otherLocation;if(view==="donors"){
+  const previous=editingId
+    ? db.donors.find(x=>x.id===editingId)
+    : null;
+
+  const selectedPhoto=$("donorDetailPhotoInput").dataset.value;
+
+  obj.detailPhoto=
+    selectedPhoto==="__REMOVE__"
+      ? ""
+      : selectedPhoto || previous?.detailPhoto || "";
+
+  obj.detailCondition=(obj.detailCondition||"").trim();
+  obj.detailDate=obj.detailDate||"";
+}
  if(view==="orphans")obj.address=obj.location;
  if(editingId){Object.assign(db[view].find(x=>x.id===editingId),obj)}
  else{let x={id:makeId(),...obj,archived:false,history:{}};db.periods.forEach(p=>x.history[p]=false);db[view].push(x)}
