@@ -332,7 +332,218 @@ function renderAdmin(){
  let el=$("adminContent");
  if(page==="dashboard"){
   el.innerHTML=`<h4>Ringkasan Pengelolaan</h4><p class="muted tiny">Periode aktif: ${monthLabel(db.active)}</p><div class="adminstats"><div class="adminstat"><b>${activeRows("donors").length}</b><span>Penerima sembako</span></div><div class="adminstat"><b>${activeVillages().length}</b><span>Desa terdaftar</span></div><div class="adminstat"><b>${activeRows("orphans").length}</b><span>Anak yatim</span></div><div class="adminstat"><b>${db.messages.filter(m=>!m.read).length}</b><span>Pesan belum dibaca</span></div></div><p class="muted tiny">Data Oktober 2026 disiapkan sebagai periode awal. Masukkan daftar desa dan penerima Oktober terlebih dahulu, lalu buat periode bulan berikutnya agar daftar nama tersalin otomatis.</p>`;
- }else if(page==="manage"){
+}else if(page==="villages"){
+  
+}else if(page==="manage"){
+  const list=db[view]||[];
+
+  const villageGroups=activeVillages().map(v=>({
+    name:v.name,
+    items:list.filter(x=>
+      (x.location||x.address||"").toLowerCase()===v.name.toLowerCase()
+    )
+  }));
+
+  const knownNames=new Set(villageGroups.map(g=>g.name.toLowerCase()));
+
+  const otherNames=[...new Set(
+    list.map(x=>(x.location||x.address||"").trim()).filter(Boolean)
+  )].filter(n=>!knownNames.has(n.toLowerCase()))
+   .sort((a,b)=>a.localeCompare(b,"id"));
+
+  otherNames.forEach(name=>villageGroups.push({
+    name,
+    items:list.filter(x=>
+      (x.location||x.address||"").toLowerCase()===name.toLowerCase()
+    ),
+    unlisted:true
+  }));
+
+  const noVillage=list.filter(x=>!(x.location||x.address||"").trim());
+
+  const itemMarkup=x=>`
+    <div class="village-admin-person"
+      style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px;border-top:1px solid #e8edf4;flex-wrap:wrap">
+      <div style="min-width:150px;flex:1">
+        <b>${esc(x.name)}</b>
+        ${view==="orphans"?`<div class="tiny muted">${esc(x.condition||"-")}</div>`:""}
+        <div style="margin-top:5px">
+          <span class="pill ${x.archived?"red":x.history?.[db.active]?"green":"gray"}">
+            ${x.archived?"Nonaktif: "+esc(x.archiveReason||"Tanpa keterangan"):x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}
+          </span>
+        </div>
+      </div>
+      <div class="rowactions">
+        ${x.archived?"":`<button class="small ${x.history?.[db.active]?"secondary":"gold"}" data-status="${x.id}">${x.history?.[db.active]?"Batalkan":"Tandai sudah"}</button>`}
+        <button class="small secondary" data-edit="${x.id}">Edit</button>
+        <button class="small ${x.archived?"gold":"danger"}" data-archive="${x.id}">${x.archived?"Aktifkan kembali":"Nonaktifkan"}</button>
+        <button class="small danger" data-delete="${x.id}">Hapus permanen</button>
+      </div>
+    </div>`;
+
+  el.innerHTML=`
+    <div class="panel-head">
+      <div>
+        <h4>${view==="donors"?"Penerima Bantuan Sembako":"Data Anak Yatim"}</h4>
+        <div class="muted tiny">Pilih desa untuk melihat dan mengelola nama penerima di desa tersebut.</div>
+      </div>
+      <div class="tabs">
+        <button class="tab ${view==="donors"?"active":""}" id="adminDonors">Sembako</button>
+        <button class="tab ${view==="orphans"?"active":""}" id="adminOrphans">Anak Yatim</button>
+      </div>
+    </div>
+
+    <div class="filters" style="margin:12px 0">
+      <input id="adminVillageSearch" placeholder="Cari nama penerima atau desa...">
+    </div>
+
+    <button class="primary" id="addNew">
+      + Tambah ${view==="donors"?"Penerima":"Anak Yatim"}
+    </button>
+
+    <div id="adminVillageGroups" style="display:grid;gap:10px;margin-top:13px">
+      ${villageGroups.map((g,i)=>`
+        <details class="village-admin-group"
+          data-village-group="${i}"
+          style="border:1px solid #dce5ef;border-radius:12px;background:#fff;overflow:hidden">
+          <summary style="cursor:pointer;list-style:none;padding:15px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f3f7fc;color:#173e70">
+            <span>
+              <b>${esc(g.name)}</b>
+              <small class="muted" style="display:block;margin-top:3px">
+                ${g.unlisted?"Lokasi belum terdaftar":"Desa terdaftar"} · klik untuk membuka daftar
+              </small>
+            </span>
+            <span class="pill">${g.items.length} nama</span>
+          </summary>
+          <div>
+            <div style="padding:10px 12px;display:flex;justify-content:flex-end">
+              <button type="button" class="small primary" data-add-village="${esc(g.name)}">
+                + Tambah di desa ini
+              </button>
+            </div>
+            ${g.items.map(itemMarkup).join("")||`<p class="muted tiny" style="padding:10px 13px">Belum ada data di desa ini.</p>`}
+          </div>
+        </details>
+      `).join("")}
+
+      ${noVillage.length?`
+        <details class="village-admin-group" style="border:1px solid #dce5ef;border-radius:12px;background:#fff">
+          <summary style="cursor:pointer;padding:15px;color:#173e70">
+            <b>Belum ditentukan desanya</b> · ${noVillage.length} nama
+          </summary>
+          ${noVillage.map(itemMarkup).join("")}
+        </details>
+      `:""}
+
+      ${!villageGroups.length&&!noVillage.length?`
+        <div class="empty">Belum ada desa atau data. Tambahkan desa melalui menu Kelola Desa.</div>
+      `:""}
+    </div>
+
+    <p class="statusline">
+      Data nonaktif tetap tersimpan dan dapat diedit atau diaktifkan kembali.
+      Penghapusan permanen juga menghapus riwayatnya.
+    </p>`;
+
+  $("adminDonors").onclick=()=>{view="donors";renderAdmin()};
+  $("adminOrphans").onclick=()=>{view="orphans";renderAdmin()};
+  $("addNew").onclick=()=>openEditor();
+
+  el.querySelectorAll("[data-add-village]").forEach(b=>
+    b.onclick=()=>openEditor(null,b.dataset.addVillage)
+  );
+
+  $("adminVillageSearch").oninput=()=>{
+    const q=$("adminVillageSearch").value.trim().toLocaleLowerCase("id");
+
+    el.querySelectorAll(".village-admin-group").forEach(group=>{
+      const matches=[...group.querySelectorAll(".village-admin-person")]
+        .some(row=>row.textContent.toLocaleLowerCase("id").includes(q));
+
+      const title=group.querySelector("summary")?.textContent.toLocaleLowerCase("id")||"";
+
+      group.style.display=(!q||matches||title.includes(q))?"":"none";
+
+      if(q&&matches)group.open=true;
+    });
+  };
+
+  el.querySelectorAll("[data-status]").forEach(b=>
+    b.onclick=()=>{
+      let x=db[view].find(x=>x.id===b.dataset.status);
+      x.history=x.history||{};
+      x.history[db.active]=!x.history[db.active];
+      persist();
+    }
+  );
+
+  el.querySelectorAll("[data-edit]").forEach(b=>
+    b.onclick=()=>openEditor(b.dataset.edit)
+  );
+
+  el.querySelectorAll("[data-archive]").forEach(b=>b.onclick=()=>{
+    let x=db[view].find(x=>x.id===b.dataset.archive);
+    if(!x)return;
+
+    if(x.archived){
+      if(confirm("Aktifkan kembali "+x.name+"? Data ini akan muncul lagi sebagai data aktif.")){
+        x.archived=false;
+        delete x.archiveReason;
+        delete x.archiveDate;
+        persist();
+      }
+      return;
+    }
+
+    let pilihan=prompt(
+      "Pilih alasan menonaktifkan "+x.name+"\n\n"+
+      "1. Wafat\n"+
+      "2. Pindah domisili\n"+
+      "3. Tidak lagi memenuhi kriteria\n"+
+      "4. Permintaan keluarga/penerima\n"+
+      "5. Alasan lainnya\n\n"+
+      "Masukkan nomor pilihan:"
+    );
+
+    if(pilihan===null)return;
+
+    const alasan={
+      "1":"Wafat",
+      "2":"Pindah domisili",
+      "3":"Tidak lagi memenuhi kriteria",
+      "4":"Permintaan keluarga/penerima"
+    };
+
+    let alasanAkhir=alasan[pilihan];
+
+    if(pilihan==="5"){
+      alasanAkhir=prompt("Tuliskan alasan lainnya:");
+      if(!alasanAkhir||!alasanAkhir.trim())return;
+      alasanAkhir=alasanAkhir.trim();
+    }
+
+    if(!alasanAkhir){
+      alert("Pilihan tidak valid.");
+      return;
+    }
+
+    if(confirm("Nonaktifkan "+x.name+"?\nAlasan: "+alasanAkhir)){
+      x.archived=true;
+      x.archiveReason=alasanAkhir;
+      x.archiveDate=new Date().toISOString();
+      persist();
+    }
+  });
+
+  el.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{
+    const x=db[view].find(v=>v.id===b.dataset.delete);
+
+    if(x&&confirm("Hapus PERMANEN data "+x.name+" beserta seluruh riwayatnya? Tindakan ini tidak bisa dibatalkan.")){
+      db[view]=db[view].filter(v=>v.id!==b.dataset.delete);
+      persist();
+    }
+  });
+             
   let list=db[view]||[];
   el.innerHTML=`<div class="panel-head"><div><h4>${view==="donors"?"Penerima Bantuan Sembako":"Data Anak Yatim"}</h4><div class="muted tiny">${view==="donors"?"Daftar penerima dikelompokkan berdasarkan desa.":"Semua anak yatim berada dalam satu tabel; desa tetap dicatat per anak."}</div></div><div class="tabs"><button class="tab ${view==="donors"?"active":""}" id="adminDonors">Sembako</button><button class="tab ${view==="orphans"?"active":""}" id="adminOrphans">Anak Yatim</button></div></div><button class="primary" id="addNew">+ Tambah ${view==="donors"?"Penerima":"Anak Yatim"}</button><div class="tablebox" style="margin-top:13px"><table><thead><tr><th>Nama</th><th>${view==="donors"?"Desa":"Keterangan / Desa"}</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${list.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${view==="donors"?esc(x.location):esc(x.condition)+"<br>"+esc(x.location||x.address)}</td><td>${x.archived?`<span class="pill red">Nonaktif: ${esc(x.archiveReason||"Tanpa keterangan")}</span>`:`<span class="pill ${x.history?.[db.active]?"green":"gray"}">${x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}</span>`}</td><td><div class="rowactions">${x.archived?"":`<button class="small ${x.history?.[db.active]?"secondary":"gold"}" data-status="${x.id}">${x.history?.[db.active]?"Batalkan":"Tandai sudah"}</button>`}<button class="small secondary" data-edit="${x.id}">Edit</button><button class="small ${x.archived?"gold":"danger"}" data-archive="${x.id}">${x.archived?"Aktifkan kembali":"Nonaktifkan"}</button><button class="small danger" data-delete="${x.id}">Hapus permanen</button></div></td></tr>`).join("")||'<tr><td colspan="4" class="empty">Belum ada data.</td></tr>'}</tbody></table></div><p class="statusline">Data nonaktif tetap tersimpan dan dapat diedit, diaktifkan kembali, atau dihapus permanen. Penghapusan permanen juga menghapus riwayatnya.</p>`;  $("adminDonors").onclick=()=>{view="donors";renderAdmin()};$("adminOrphans").onclick=()=>{view="orphans";renderAdmin()};$("addNew").onclick=()=>openEditor();
   el.querySelectorAll("[data-status]").forEach(b=>b.onclick=()=>{let x=db[view].find(x=>x.id===b.dataset.status);x.history=x.history||{};x.history[db.active]=!x.history[db.active];persist()});
@@ -421,10 +632,10 @@ function renderAdmin(){
   $("csvExport").onclick=()=>{let rows=[["Nama","Desa","Status periode"]];activeRows("donors").forEach(x=>rows.push([x.name,x.location,x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"]));download("data-penerima-donasi.csv",rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\n"),"text/csv")};
  }
 }
-function openEditor(id){
- editingId=id||null;let x=id?db[view].find(v=>v.id===id):{};
+function openEditor(id,presetVillage=""){
+ editingId=id||null;let x=id?db[view].find(v=>v.id===id):{};let selectedVillage=x.location||x.address||presetVillage||"";
  $("editTitle").textContent=(id?"Edit ":"Tambah ")+(view==="donors"?"Penerima Sembako":"Data Anak Yatim");
- let villageOptions=activeVillages().map(v=>`<option value="${esc(v.name)}" ${(x.location||x.address)===v.name?"selected":""}>${esc(v.name)}</option>`).join("");
+ let villageOptions=activeVillages().map(v=>`<option value="${esc(v.name)}" ${selectedVillage===v.name?"selected":""}>${esc(v.name)}</option>`).join("");
  $("editFields").innerHTML=view==="donors"
  ?`<div class="field"><label>Nama penerima</label><input name="name" required maxlength="100" value="${esc(x.name||"")}"></div><div class="field"><label>Desa</label><select name="location" required><option value="">Pilih desa</option>${villageOptions}<option value="__other">+ Ketik desa lain</option></select><input name="otherLocation" placeholder="Nama desa/lokasi baru" style="margin-top:7px" value=""></div>`
  :`<div class="field"><label>Nama anak</label><input name="name" required maxlength="100" value="${esc(x.name||"")}"></div><div class="field"><label>Keterangan</label><select name="condition"><option ${x.condition==="Yatim"?"selected":""}>Yatim</option><option ${x.condition==="Piatu"?"selected":""}>Piatu</option><option ${x.condition==="Yatim Piatu"?"selected":""}>Yatim Piatu</option></select></div><div class="field"><label>Desa</label><select name="location" required><option value="">Pilih desa</option>${villageOptions}<option value="__other">+ Ketik desa lain</option></select><input name="otherLocation" placeholder="Nama desa/lokasi baru" style="margin-top:7px"></div>`;if(view==="donors"){
