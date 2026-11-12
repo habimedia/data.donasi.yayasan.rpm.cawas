@@ -374,9 +374,50 @@ $("distributionNote").classList.toggle("hidden",view!=="donors");
 $("publicRows").querySelectorAll("[data-donor-detail]").forEach(b=>{
   b.onclick=()=>showDonorDetail(b.dataset.donorDetail);
 });
+
 }else{
-   $("publicHead").innerHTML="<tr><th>Nama anak</th><th>Keterangan</th><th>Desa</th><th>Status bantuan</th></tr>";
-   $("publicRows").innerHTML=rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.condition)}</td><td>${esc(x.location||x.address)}</td><td><span class="pill ${x.archived?"red":x.history?.[db.active]?"green":"gray"}">${x.archived?"Nonaktif: "+esc(x.archiveReason||"Tanpa keterangan"):x.history?.[db.active]?"Sudah diberikan":"Belum diberikan"}</span></td></tr>`).join(""); }
+   $("publicHead").innerHTML="<tr><th>Daftar Desa / Wilayah</th></tr>";
+
+   let orphanGroups=[...new Set(rows.map(x=>(x.location||x.address||"Belum ditentukan").trim()))]
+     .sort((a,b)=>a.localeCompare(b,"id"))
+     .map(name=>({
+       name,
+       items:rows.filter(x=>(x.location||x.address||"Belum ditentukan").trim()===name)
+     }));
+
+   $("publicRows").innerHTML=orphanGroups.map((g,i)=>`
+     <tr>
+       <td style="padding:0;border-bottom:8px solid #f3f6fb">
+         <button type="button" data-orphan-village-toggle="${i}" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:17px 14px;border:1px solid #dce6f3;border-radius:10px;background:linear-gradient(120deg,#eaf2fc,#f7faff);color:#173e70;text-align:left;cursor:pointer">
+           <span>
+             <b style="font-size:15px;display:block">${esc(g.name)}</b>
+             <small style="color:#718096">Klik untuk melihat daftar anak yatim</small>
+           </span>
+           <span style="background:#173e70;color:white;padding:6px 10px;border-radius:20px;font-size:11px;white-space:nowrap">${g.items.length} anak　⌄</span>
+         </button>
+       </td>
+     </tr>
+     ${g.items.map(x=>`
+       <tr data-orphan-village-members="${i}" style="display:none">
+         <td style="padding:12px 14px">
+           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+             <span><b>${esc(x.name)}</b><br><small class="muted">${esc(x.condition||"- ")}</small></span>
+             <span class="pill ${x.archived?"red":x.history?.[db.active]?"green":"gray"}">${x.archived?"Nonaktif: "+esc(x.archiveReason||"Tanpa keterangan"):x.history?.[db.active]?"Amplop: Sudah diberikan":"Amplop: Belum diberikan"}</span>
+           </div>
+         </td>
+       </tr>
+     `).join("")}
+   `).join("");
+
+   $("publicRows").querySelectorAll("[data-orphan-village-toggle]").forEach(b=>{
+     b.onclick=()=>{
+       let id=b.dataset.orphanVillageToggle;
+       let members=$("publicRows").querySelectorAll(`[data-orphan-village-members="${id}"]`);
+       let isOpen=members.length>0 && members[0].style.display!=="none";
+       members.forEach(r=>{r.style.display=isOpen?"none":"table-row";});
+     };
+   });
+ }
  $("empty").classList.toggle("hidden",rows.length>0);$("adminSection").classList.toggle("hidden",!admin);if(admin)renderAdmin();
  if(db.hero) $("home").style.backgroundImage=`url("${db.hero}")`;else $("home").style.backgroundImage=""; }
 function showDonorDetail(id){
