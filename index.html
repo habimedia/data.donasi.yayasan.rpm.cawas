@@ -231,9 +231,9 @@ function render(){
  let d=activeRows("donors"),o=activeRows("orphans"),all=[...d,...o],given=d.filter(x=>x.sembakoHistory?.[db.active]).length+o.filter(x=>x.history?.[db.active]).length;
 
 $("publicSembako").textContent=d.filter(x=>x.sembakoHistory?.[db.active]).length;
-$("publicAmplop").textContent=d.filter(x=>x.amplopHistory?.[db.active]).length;
+$("publicAmplop").textContent=o.filter(x=>x.history?.[db.active]).length;
 
-$("distributionRecap").classList.toggle("hidden",view!=="donors");
+$("distributionRecap").classList.remove("hidden");
 $("distributionNote").classList.toggle("hidden",view!=="donors");
  $("sDonor").textContent=d.length;$("sOrphan").textContent=o.length;$("sGiven").textContent=given;$("sPending").textContent=all.length-given;
  document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
@@ -317,9 +317,7 @@ $("distributionNote").classList.toggle("hidden",view!=="donors");
     Sembako: ${x.sembakoHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
   </span>
 
-  <span class="pill ${x.amplopHistory?.[db.active]?"green":"gray"}">
-    Amplop: ${x.amplopHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
-  </span>
+  
 </span>
             </div>
           </td>
@@ -340,9 +338,7 @@ $("distributionNote").classList.toggle("hidden",view!=="donors");
  <span class="pill ${x.sembakoHistory?.[db.active]?"green":"gray"}">
   Sembako: ${x.sembakoHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
  </span>
- <span class="pill ${x.amplopHistory?.[db.active]?"green":"gray"}">
-  Amplop: ${x.amplopHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
- </span>
+
 </div>
   ${x.archived?`<span class="pill red">Nonaktif: ${esc(x.archiveReason||"Tanpa keterangan")}</span>`:""}
 </td>
@@ -440,9 +436,7 @@ function renderAdmin(){
         ${view==="orphans"?`<div class="tiny muted">${esc(x.condition||"-")}</div>`:""}
         <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">
   ${view==="donors"?`${x.archived?`<span class="pill red">Nonaktif: ${esc(x.archiveReason||"Tanpa keterangan")}</span>`:""}
-   <span class="pill ${x.sembakoHistory?.[db.active]?"green":"gray"}">
-    Sembako: ${x.sembakoHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
-   </span>
+   
    <span class="pill ${x.amplopHistory?.[db.active]?"green":"gray"}">
     Amplop: ${x.amplopHistory?.[db.active]?"Disalurkan":"Tidak mendapat alokasi bulan ini"}
    </span>
@@ -456,9 +450,7 @@ function renderAdmin(){
   <button class="small ${x.sembakoHistory?.[db.active]?"secondary":"gold"}" data-sembako="${x.id}">
     ${x.sembakoHistory?.[db.active]?"Batalkan sembako":"Tandai sembako"}
   </button>
-  <button class="small ${x.amplopHistory?.[db.active]?"secondary":"gold"}" data-amplop="${x.id}">
-    ${x.amplopHistory?.[db.active]?"Batalkan amplop":"Tandai amplop"}
-  </button>
+ 
 `:`<button class="small ${x.history?.[db.active]?"secondary":"gold"}" data-status="${x.id}">
   ${x.history?.[db.active]?"Batalkan":"Tandai sudah"}
 </button>`}
@@ -569,17 +561,6 @@ el.querySelectorAll("[data-sembako]").forEach(b=>{
   };
 });
 
-el.querySelectorAll("[data-amplop]").forEach(b=>{
-  b.onclick=()=>{
-    let x=db.donors.find(x=>x.id===b.dataset.amplop);
-    if(!x)return;
-
-    x.amplopHistory=x.amplopHistory||{};
-    x.amplopHistory[db.active]=!x.amplopHistory[db.active];
-
-    persist();
-  };
-});
   el.querySelectorAll("[data-status]").forEach(b=>
     b.onclick=()=>{
       let x=db[view].find(x=>x.id===b.dataset.status);
